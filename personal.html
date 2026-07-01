@@ -71,21 +71,22 @@ body{font-family:-apple-system,'PingFang TC','Noto Sans TC',sans-serif;backgroun
 
 /* expense item */
 .exp-item{background:var(--card);border-radius:var(--r);padding:12px 13px;margin-bottom:8px;box-shadow:var(--sh);border:1px solid var(--border);display:flex;align-items:center;gap:10px;animation:sIn .2s ease;}
-.exp-item.personal{border-left:3.5px solid var(--pink);}
-.exp-item.shared{border-left:3.5px solid var(--teal);}
+.exp-item.personal{border-left:3.5px solid #7a9db8;}
+.exp-item.shared{border-left:3.5px solid #5bb8c4;}
+.exp-item.pending{border:2px dashed #f59e0b!important;background:#fffbf2!important;border-left:2px dashed #f59e0b!important;}
 .exp-item.clickable{cursor:pointer;transition:box-shadow .15s;}
 .exp-item.clickable:hover{box-shadow:0 4px 16px rgba(232,121,160,.22);}
 .exp-icon{width:38px;height:38px;border-radius:10px;background:var(--pk-light);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
-.exp-item.shared .exp-icon{background:var(--tl);}
+.exp-item.shared .exp-icon{background:#d6f0f3;}
 .exp-info{flex:1;min-width:0;}
 .exp-name{font-size:14px;font-weight:600;}
 .exp-meta{font-size:11px;color:var(--muted);margin-top:2px;display:flex;gap:5px;flex-wrap:wrap;}
 .exp-right{text-align:right;flex-shrink:0;}
 .exp-amt{font-size:15px;font-weight:700;}
 .exp-sub{font-size:10px;color:var(--muted);margin-top:1px;}
-.shared-tag{display:inline-flex;align-items:center;gap:3px;background:var(--tl);color:var(--td);border:1px solid var(--teal);border-radius:5px;padding:1px 6px;font-size:10px;font-weight:700;}
+.shared-tag{display:inline-flex;align-items:center;gap:3px;background:#d6f0f3;color:#3a9aab;border:1px solid #5bb8c4;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:700;}
 .personal-tag{display:inline-flex;align-items:center;gap:3px;background:var(--pk-light);color:var(--pk-dark);border:1px solid var(--pink);border-radius:5px;padding:1px 6px;font-size:10px;font-weight:700;}
-.pending-chip{display:inline-flex;align-items:center;gap:3px;background:#fff7ed;color:#b45309;border:1px solid #fcd34d;border-radius:5px;padding:2px 6px;font-size:10px;font-weight:700;margin-top:3px;}
+.pending-chip{display:inline-flex;align-items:center;gap:3px;background:#fff7ed;color:#b45309;border:1.5px solid #f59e0b;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;margin-top:4px;}
 .edit-hint{font-size:10px;color:var(--muted);opacity:.4;flex-shrink:0;}
 
 /* settle */
@@ -241,8 +242,9 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     </div>
     <div class="row2">
       <div class="fg">
-        <label>金額</label>
-        <input type="number" id="expAmt" placeholder="0" inputmode="decimal">
+        <label>金額 <span style="font-size:10px;color:var(--muted);font-weight:400;">支援四則運算 如 1260+150、500*2，可輸入負數沖帳</span></label>
+        <input type="text" id="expAmt" placeholder="0 或 1260+150 或 -360" inputmode="decimal" oninput="previewCalc(this)">
+        <div id="calcPreview" style="font-size:12px;color:#4a6f8a;margin-top:4px;display:none;"></div>
       </div>
       <div class="fg">
         <label>幣別</label>
@@ -603,7 +605,7 @@ function renderSharedItem(e){
       ${pending?`<div class="pending-chip">⏳ 待填金額</div>`:''}
     </div>
     <div class="exp-right">
-      <div class="exp-amt" style="color:var(--td)">${pending?'—':fmt(myShareView)}</div>
+      <div class="exp-amt" style="color:#3a9aab">${pending?'—':fmt(myShareView)}</div>
       <div class="exp-sub">${pending?'待填':viewCur}</div>
     </div>
   </div>`;
@@ -910,9 +912,35 @@ function selCatFn(i){
   document.querySelectorAll('.cat-btn').forEach((b,j)=>b.classList.toggle('sel',i===j));
 }
 
+function previewCalc(inp){
+  const str=inp.value.trim();
+  const preview=document.getElementById('calcPreview');
+  if(!preview)return;
+  // only show preview if contains operators
+  if(/[+\-*/]/.test(str)&&str.length>1){
+    const result=calcAmt(str);
+    preview.style.display='block';
+    preview.textContent='= '+result.toLocaleString();
+  } else {
+    preview.style.display='none';
+  }
+}
+
+function calcAmt(str){
+  // support basic arithmetic: +,-,*,/
+  try{
+    const clean=str.replace(/[^0-9+\-*/.]/g,'');
+    if(!clean) return 0;
+    // eslint-disable-next-line no-eval
+    const result=Function('"use strict";return ('+clean+')')();
+    return isFinite(result)?parseFloat(result.toFixed(2)):0;
+  }catch(e){return 0;}
+}
+
 function savePersonalExp(){
   const name=document.getElementById('expName').value.trim();
-  const amt=parseFloat(document.getElementById('expAmt').value)||0;
+  const amtStr=document.getElementById('expAmt').value.trim();
+  const amt=calcAmt(amtStr);
   const note=document.getElementById('expNote').value.trim();
   const currency=document.getElementById('expCur').value;
   const dayVal=document.getElementById('expDay').value;
