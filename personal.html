@@ -81,9 +81,10 @@ body{font-family:-apple-system,'PingFang TC','Noto Sans TC',sans-serif;backgroun
 .exp-info{flex:1;min-width:0;}
 .exp-name{font-size:14px;font-weight:600;}
 .exp-meta{font-size:11px;color:var(--muted);margin-top:2px;display:flex;gap:5px;flex-wrap:wrap;}
-.exp-right{text-align:right;flex-shrink:0;}
+.exp-right{text-align:right;flex-shrink:0;min-width:72px;}
 .exp-amt{font-size:15px;font-weight:700;}
 .exp-sub{font-size:10px;color:var(--muted);margin-top:1px;}
+.exp-edit-pill{width:28px;height:28px;border-radius:8px;background:#e8f0f7;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;opacity:.6;}
 .shared-tag{display:inline-flex;align-items:center;gap:3px;background:#d6f0f3;color:#3a9aab;border:1px solid #5bb8c4;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:700;}
 .personal-tag{display:inline-flex;align-items:center;gap:3px;background:var(--pk-light);color:var(--pk-dark);border:1px solid var(--pink);border-radius:5px;padding:1px 6px;font-size:10px;font-weight:700;}
 .pending-chip{display:inline-flex;align-items:center;gap:3px;background:#fff7ed;color:#b45309;border:1.5px solid #f59e0b;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;margin-top:4px;}
@@ -100,6 +101,11 @@ body{font-family:-apple-system,'PingFang TC','Noto Sans TC',sans-serif;backgroun
 .chart-wrap{background:var(--card);border-radius:var(--r);padding:16px;margin-bottom:10px;box-shadow:var(--sh);border:1px solid var(--border);}
 .chart-title{font-size:14px;font-weight:700;margin-bottom:14px;color:var(--text);}
 canvas{display:block;margin:0 auto;}
+
+/* calc buttons */
+.calc-btns{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
+.calc-btn{padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);background:var(--card);color:#4a6f8a;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;min-width:44px;text-align:center;}
+.calc-btn:active{background:#e8f0f7;border-color:#a8bcc8;}
 
 /* activity log */
 .log-item{background:var(--card);border-radius:12px;padding:11px 14px;margin-bottom:7px;box-shadow:var(--sh);border:1px solid var(--border);display:flex;gap:10px;align-items:flex-start;animation:sIn .2s ease;}
@@ -178,7 +184,6 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
         🔄 更新
       </button>
       <button class="hdr-btn" onclick="exportExcel()">📊 匯出</button>
-      <button class="hdr-btn" id="importBtn" onclick="importMyExpenses()">📥 匯入</button>
       <button class="hdr-btn" onclick="openOv('rateOv')">💱 匯率</button>
     </div>
   </div>
@@ -242,9 +247,18 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     </div>
     <div class="row2">
       <div class="fg">
-        <label>金額 <span style="font-size:10px;color:var(--muted);font-weight:400;">支援四則運算 如 1260+150、500*2，可輸入負數沖帳</span></label>
-        <input type="text" id="expAmt" placeholder="0 或 1260+150 或 -360" inputmode="decimal" oninput="previewCalc(this)">
-        <div id="calcPreview" style="font-size:12px;color:#4a6f8a;margin-top:4px;display:none;"></div>
+        <label>金額 <span style="font-size:10px;color:var(--muted);font-weight:400;">可輸入負數沖帳</span></label>
+        <input type="text" id="expAmt" placeholder="0" inputmode="decimal" oninput="previewCalc(this)" style="font-size:18px;">
+        <div class="calc-btns">
+          <button class="calc-btn" onclick="insertCalc('+')">＋</button>
+          <button class="calc-btn" onclick="insertCalc('-')">－</button>
+          <button class="calc-btn" onclick="insertCalc('*')">×</button>
+          <button class="calc-btn" onclick="insertCalc('/')">÷</button>
+          <button class="calc-btn" onclick="insertCalc('(')" style="min-width:36px;">(</button>
+          <button class="calc-btn" onclick="insertCalc(')')" style="min-width:36px;">)</button>
+          <button class="calc-btn" onclick="clearCalc()" style="color:var(--red);min-width:36px;">C</button>
+        </div>
+        <div id="calcPreview" style="font-size:13px;color:#4a6f8a;margin-top:6px;font-weight:600;display:none;padding:6px 10px;background:#e8f0f7;border-radius:8px;"></div>
       </div>
       <div class="fg">
         <label>幣別</label>
@@ -366,7 +380,6 @@ async function initFirebase(){
         document.getElementById('rateInp').value=personalData.rate||0.22;
       }
       showLoading(false);
-      checkImportBtn();
       // if no snapshottedShared yet, auto-import on first load
       if(!snapshottedShared&&latestShared){
         snapshottedShared=JSON.parse(JSON.stringify(latestShared));
@@ -592,7 +605,8 @@ function renderSharedItem(e){
   const cat=CATS[e.cat]||CATS[9];
   const pending=!e.amount;
   const myShareView=toView(e._myShare||0,sharedCur());
-  return`<div class="exp-item shared">
+  const origAmt=e._myShare&&sharedCur()!==viewCur?`<div style="font-size:10px;color:#7a8e9a;margin-top:1px;">${fmt(e._myShare)} ${sharedCur()}</div>`:'';
+  return`<div class="exp-item shared${pending?' pending':''}">
     <div class="exp-icon">${cat.e}</div>
     <div class="exp-info">
       <div class="exp-name">${e.name}</div>
@@ -607,15 +621,18 @@ function renderSharedItem(e){
     <div class="exp-right">
       <div class="exp-amt" style="color:#3a9aab">${pending?'—':fmt(myShareView)}</div>
       <div class="exp-sub">${pending?'待填':viewCur}</div>
+      ${origAmt}
     </div>
   </div>`;
 }
 
 function renderPersonalItem(e){
   const cat=CATS[e.cat]||CATS[9];
-  const pending=!e.amount;
+  const pending=!e.amount||e.amount===0;
   const amtView=toView(e.amount||0,e.currency||sharedCur());
   const pIdx=e._pIdx;
+  const hasDiffCur=!pending&&e.currency&&e.currency!==viewCur;
+  const origLine=hasDiffCur?`<div style="font-size:10px;color:#7a8e9a;margin-top:1px;">${Math.round(Math.abs(e.amount)).toLocaleString()} ${e.currency}</div>`:'';
   return`<div class="exp-item personal clickable${pending?' pending':''}" onclick="openAddExp(${pIdx})">
     <div class="exp-icon">${cat.e}</div>
     <div class="exp-info">
@@ -623,16 +640,16 @@ function renderPersonalItem(e){
       <div class="exp-meta">
         <span class="personal-tag">🔒 私人</span>
         <span>${cat.n}</span>
-        ${!pending&&e.currency&&e.currency!==viewCur?`<span>${Math.round(e.amount||0).toLocaleString()} ${e.currency}</span>`:''}
         ${e.note?`<span>📝 ${e.note}</span>`:''}
       </div>
       ${pending?`<div class="pending-chip">⏳ 待填金額</div>`:''}
     </div>
+    <div class="exp-edit-pill">✏️</div>
     <div class="exp-right">
-      <div class="exp-amt" style="${pending?'color:var(--orange)':''}">${pending?'—':fmt(amtView)}</div>
+      <div class="exp-amt" style="${pending?'color:var(--orange)':e.amount<0?'color:var(--green)':''}">${pending?'—':(e.amount<0?'':'')+fmt(amtView)}</div>
       <div class="exp-sub">${pending?'待填':viewCur}</div>
+      ${origLine}
     </div>
-    <span class="edit-hint">✏️</span>
   </div>`;
 }
 
@@ -757,10 +774,15 @@ function renderDetail(data){
       <button onclick="_selCat=null;drawChart();" style="margin-left:auto;background:none;border:none;font-size:18px;cursor:pointer;color:#7a8e9a;">✕</button>
     </div>
     ${d.items.map((item,idx)=>`
-      <div style="display:flex;align-items:center;padding:8px 0;border-top:${idx>0?'1px solid #e8f0f7':'none'};">
-        <div style="flex:1;font-size:13px;">${item.name}${item.note?`<span style="font-size:10px;color:#7a8e9a;margin-left:5px;">${item.note}</span>`:''}</div>
-        <div style="font-size:13px;font-weight:600;color:#4a6f8a;">${fmt(item.amount)} ${item.currency}</div>
-        ${item.currency!==viewCur?`<div style="font-size:10px;color:#7a8e9a;margin-left:5px;">≈${fmt(toView(item.amount,item.currency))} ${viewCur}</div>`:''}
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-top:${idx>0?'1px solid #e8f0f7':'none'};">
+        <div style="flex:1;font-size:13px;min-width:0;">
+          ${item.name}
+          ${item.note?`<span style="font-size:10px;color:#7a8e9a;margin-left:5px;">${item.note}</span>`:''}
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-size:13px;font-weight:600;color:#4a6f8a;">${fmt(toView(item.amount,item.currency))} ${viewCur}</div>
+          ${item.currency!==viewCur?`<div style="font-size:10px;color:#7a8e9a;margin-top:1px;">${fmt(item.amount)} ${item.currency}</div>`:''}
+        </div>
       </div>`).join('')}
     <div style="margin-top:10px;padding-top:10px;border-top:1.5px dashed #d0dde8;display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:#4a6f8a;">
       <span>小計</span><span>${fmt(d.total)} ${viewCur}</span>
@@ -912,15 +934,36 @@ function selCatFn(i){
   document.querySelectorAll('.cat-btn').forEach((b,j)=>b.classList.toggle('sel',i===j));
 }
 
+function insertCalc(sym){
+  const inp=document.getElementById('expAmt');
+  const start=inp.selectionStart;
+  const end=inp.selectionEnd;
+  const val=inp.value;
+  inp.value=val.slice(0,start)+sym+val.slice(end);
+  inp.selectionStart=inp.selectionEnd=start+sym.length;
+  inp.focus();
+  previewCalc(inp);
+}
+
+function clearCalc(){
+  const inp=document.getElementById('expAmt');
+  inp.value='';
+  const preview=document.getElementById('calcPreview');
+  if(preview)preview.style.display='none';
+  inp.focus();
+}
+
 function previewCalc(inp){
   const str=inp.value.trim();
   const preview=document.getElementById('calcPreview');
   if(!preview)return;
   // only show preview if contains operators
-  if(/[+\-*/]/.test(str)&&str.length>1){
+  if(/[+\-*/()]/.test(str)&&str.length>1){
     const result=calcAmt(str);
-    preview.style.display='block';
-    preview.textContent='= '+result.toLocaleString();
+    if(result!==0||str.includes('0')){
+      preview.style.display='block';
+      preview.textContent='＝ '+result.toLocaleString();
+    }
   } else {
     preview.style.display='none';
   }
@@ -1108,73 +1151,7 @@ document.querySelectorAll('.ov').forEach(o=>{
   o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});
 });
 
-/* ── import my expense data ── */
-async function importMyExpenses(){
-  if(personalData._imported){alert('已經匯入過了！');return;}
-  if(!confirm('確定要匯入你的消費明細嗎？這會新增到現有資料上。')) return;
-  const data=[
-    // Day1
-    {name:'Skyliner',amount:508,currency:'TWD',cat:4,dayIndex:0,note:''},
-    // Day2
-    {name:'龍貓商店',amount:5378,currency:'TWD',cat:7,dayIndex:1,note:'¥5720'},
-    {name:'草莓起司布雪',amount:360,currency:'JPY',cat:3,dayIndex:1,note:''},
-    {name:'蘋果卡士達派',amount:500,currency:'JPY',cat:3,dayIndex:1,note:''},
-    {name:'Coach',amount:27273,currency:'JPY',cat:7,dayIndex:1,note:'≈TWD 5378'},
-    {name:'公車去教堂',amount:420,currency:'JPY',cat:4,dayIndex:1,note:''},
-    {name:'Non Okawa 巧克力烘乾吐司餅乾',amount:648,currency:'JPY',cat:3,dayIndex:1,note:''},
-    // Day3
-    {name:'UNIQLO 網球裙*2',amount:5437,currency:'JPY',cat:7,dayIndex:2,note:'川越'},
-    {name:'相印機耗材',amount:0,currency:'JPY',cat:7,dayIndex:2,note:'川越'},
-    {name:'超市買晚餐',amount:6719,currency:'JPY',cat:6,dayIndex:2,note:'川越'},
-    {name:'全家蔬菜湯雞肉串晚餐',amount:1494,currency:'JPY',cat:2,dayIndex:2,note:'川越'},
-    {name:'幫🐟買鹽昆布',amount:0,currency:'JPY',cat:6,dayIndex:2,note:'待確認金額'},
-    // Day4
-    {name:'文具們',amount:0,currency:'JPY',cat:9,dayIndex:3,note:'Disneyland'},
-    {name:'漢堡午餐',amount:0,currency:'JPY',cat:1,dayIndex:3,note:'Disneyland'},
-    // Day5
-    {name:'八天堂',amount:320,currency:'JPY',cat:3,dayIndex:4,note:'購物day'},
-    {name:'3coin 口罩',amount:330,currency:'JPY',cat:7,dayIndex:4,note:''},
-    {name:'豆富食堂',amount:2420,currency:'JPY',cat:2,dayIndex:4,note:'午餐'},
-    {name:'Daiso',amount:4730,currency:'JPY',cat:7,dayIndex:4,note:'購物day'},
-    {name:'Donki',amount:5424,currency:'JPY',cat:7,dayIndex:4,note:'購物day'},
-    {name:'Cando',amount:2090,currency:'JPY',cat:7,dayIndex:4,note:'1870+220'},
-    {name:'Daiso 2',amount:1980,currency:'JPY',cat:7,dayIndex:4,note:''},
-    {name:'欠吳岳高',amount:3900,currency:'JPY',cat:8,dayIndex:4,note:''},
-    {name:'Lawson 排少餅乾卡',amount:171,currency:'JPY',cat:3,dayIndex:4,note:''},
-    {name:'鬍子爸爸 玉露抹茶',amount:0,currency:'JPY',cat:3,dayIndex:4,note:'待填金額'},
-    {name:'Loft 網球貼紙',amount:253,currency:'JPY',cat:7,dayIndex:4,note:''},
-    {name:'幫健買超市甜點',amount:753,currency:'JPY',cat:6,dayIndex:4,note:''},
-    {name:'家旁邊超市',amount:1980,currency:'JPY',cat:6,dayIndex:4,note:''},
-    {name:'水',amount:141,currency:'JPY',cat:6,dayIndex:4,note:''},
-    // Day6
-    {name:'Lawson 排少餅乾卡',amount:171,currency:'JPY',cat:3,dayIndex:5,note:''},
-    {name:'Donki',amount:3616,currency:'JPY',cat:7,dayIndex:5,note:''},
-    {name:'姐姐的巧克力薯片',amount:205,currency:'JPY',cat:3,dayIndex:5,note:''},
-    {name:'扭蛋 SKZOO',amount:400,currency:'JPY',cat:7,dayIndex:5,note:''},
-    {name:'鴨to蔥',amount:1410,currency:'JPY',cat:2,dayIndex:5,note:'1260+150現金'},
-    {name:'師傅&烏薩琪扭蛋',amount:1000,currency:'JPY',cat:7,dayIndex:5,note:'¥500*2'},
-    {name:'富岡義勇扭蛋',amount:1600,currency:'JPY',cat:7,dayIndex:5,note:'¥400*4'},
-    {name:'猗窩座扭蛋',amount:500,currency:'JPY',cat:7,dayIndex:5,note:''},
-    {name:'日暮里卡士達千層酥',amount:420,currency:'JPY',cat:3,dayIndex:5,note:''},
-    {name:'機場蕎麥茶',amount:180,currency:'JPY',cat:3,dayIndex:5,note:''},
-  ];
-  if(!personalData.expenses) personalData.expenses=[];
-  personalData.expenses=[...personalData.expenses,...data];
-  await savePersonal();
-  updateSummary();renderTab();
-  personalData._imported=true;
-  await savePersonal();
-  const btn=document.getElementById('importBtn');
-  if(btn)btn.style.display='none';
-  alert('✅ 匯入完成！共 '+data.length+' 筆\n這個按鈕已自動隱藏，不會重複匯入。');
-}
-
 /* ── init ── */
-// hide import btn if already imported (checked after firebase loads)
-function checkImportBtn(){
-  const btn=document.getElementById('importBtn');
-  if(btn) btn.style.display=personalData._imported?'none':'';
-}
 initFirebase();
 </script>
 </body>
