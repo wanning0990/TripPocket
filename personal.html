@@ -184,6 +184,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
         🔄 更新
       </button>
       <button class="hdr-btn" onclick="exportExcel()">📊 匯出</button>
+      <button class="hdr-btn" id="suicaImportBtn" onclick="importSuicaData()">🚇 匯入Suica</button>
       <button class="hdr-btn" onclick="openOv('rateOv')">💱 匯率</button>
     </div>
   </div>
@@ -1150,6 +1151,59 @@ function closeOv(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.ov').forEach(o=>{
   o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});
 });
+
+/* ── import Suica & missing data ── */
+async function importSuicaData(){
+  if(!confirm('確定要匯入 Suica 補充資料嗎？')) return;
+  const data=[
+    // Day1
+    {name:'Nippori→Sugamo 交通',amount:199,currency:'JPY',cat:4,dayIndex:0,note:'抵達東京後到住處'},
+    {name:'超商晚餐',amount:731,currency:'JPY',cat:2,dayIndex:0,note:'Day1 超商'},
+    // Day2
+    {name:'輕井澤公車',amount:231,currency:'JPY',cat:4,dayIndex:1,note:'Karuizawa站內'},
+    {name:'Tokyo→Sugamo 交通',amount:209,currency:'JPY',cat:4,dayIndex:1,note:'從東京回住處'},
+    // Day3
+    {name:'Ikebukuro→川越 交通',amount:481,currency:'JPY',cat:4,dayIndex:2,note:'去川越'},
+    {name:'川越→Ikebukuro 交通',amount:481,currency:'JPY',cat:4,dayIndex:2,note:'川越回來'},
+    {name:'Ikebukuro→Sugamo 交通',amount:155,currency:'JPY',cat:4,dayIndex:2,note:'回住處'},
+    {name:'水',amount:108,currency:'JPY',cat:6,dayIndex:2,note:'川越'},
+    {name:'711調味粉*2',amount:211,currency:'JPY',cat:6,dayIndex:2,note:'川越'},
+    {name:'貓公車毛巾',amount:385,currency:'JPY',cat:7,dayIndex:2,note:'川越'},
+    {name:'鬍子爸爸泡芙',amount:320,currency:'JPY',cat:3,dayIndex:2,note:'川越'},
+    {name:'川越麵包',amount:250,currency:'JPY',cat:3,dayIndex:2,note:'川越'},
+    {name:'吉伊卡哇',amount:1275,currency:'JPY',cat:7,dayIndex:2,note:'川越'},
+    // Day4
+    {name:'Sugamo→Maihama 交通',amount:440,currency:'JPY',cat:4,dayIndex:3,note:'去迪士尼'},
+    {name:'Maihama→Tokyo 交通',amount:253,currency:'JPY',cat:4,dayIndex:3,note:'迪士尼回東京'},
+    {name:'Tokyo→Sugamo 交通',amount:209,currency:'JPY',cat:4,dayIndex:3,note:'回住處'},
+    {name:'迪士尼十六茶',amount:250,currency:'JPY',cat:3,dayIndex:3,note:'迪士尼'},
+    {name:'文具們',amount:4720,currency:'JPY',cat:7,dayIndex:3,note:'迪士尼'},
+    {name:'漢堡午餐',amount:2340,currency:'JPY',cat:1,dayIndex:3,note:'迪士尼'},
+    // Day5
+    {name:'Sugamo→Ebisu 交通',amount:253,currency:'JPY',cat:4,dayIndex:4,note:'去惠比壽'},
+    {name:'Shibuya→Shimbashi 交通',amount:178,currency:'JPY',cat:4,dayIndex:4,note:'澀谷→新橋'},
+    {name:'Hibiya→Sugamo 交通',amount:220,currency:'JPY',cat:4,dayIndex:4,note:'回住處'},
+    // Day6
+    {name:'Sugamo→Nippori 交通',amount:199,currency:'JPY',cat:4,dayIndex:5,note:'去機場'},
+  ];
+
+  // Also update existing pending items
+  if(personalData.expenses){
+    personalData.expenses=personalData.expenses.map(e=>{
+      if(e.name==='文具們'&&e.dayIndex===3) return{...e,amount:4720};
+      if(e.name==='漢堡午餐'&&e.dayIndex===3) return{...e,amount:2340};
+      return e;
+    });
+  }
+
+  if(!personalData.expenses) personalData.expenses=[];
+  personalData.expenses=[...personalData.expenses,...data];
+  personalData._suicaImported=true;
+  await savePersonal();
+  updateSummary();renderTab();
+  alert('✅ 匯入完成！共 '+data.length+' 筆，並補填了文具們與漢堡午餐的金額');
+  document.getElementById('suicaImportBtn').style.display='none';
+}
 
 /* ── init ── */
 initFirebase();
