@@ -381,6 +381,29 @@ async function save(){
   }catch(e){console.error('save error',e);}
 }
 
+async function logAction(action,entry){
+  if(!db||!_doc||!_setDoc)return;
+  try{
+    const cat=CATS[entry.cat]||CATS[9];
+    const day=entry.dayIndex!=null?`Day${entry.dayIndex+1}`:'未指定';
+    const amt=entry.amount?Math.round(entry.amount).toLocaleString()+' '+S.currency:'待填';
+    let ip='unknown';
+    try{const r=await fetch('https://api.ipify.org?format=json');const j=await r.json();ip=j.ip;}catch(e){}
+    const log={
+      action, // 'add' | 'edit' | 'delete'
+      name:entry.name||'',
+      cat:cat.e+cat.n,
+      amount:amt,
+      payer:entry.payer||'',
+      day,
+      ip,
+      time:new Date().toISOString()
+    };
+    const {addDoc,collection}=await import('https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js');
+    await addDoc(collection(db,'activitylog'),log);
+  }catch(e){console.error('log error',e);}
+}
+
 function showLoading(show){
   const el=document.getElementById('loadingBar');
   if(el)el.style.display=show?'flex':'none';
@@ -795,9 +818,11 @@ function saveExpense(){
     entry.amounts=amounts;
   }
 
-  if(editIdx>=0) S.expenses[editIdx]=entry;
+  const isEdit=editIdx>=0;
+  if(isEdit) S.expenses[editIdx]=entry;
   else S.expenses.push(entry);
 
+  logAction(isEdit?'edit':'add',entry);
   save();updateSummary();renderTab();
   closeOv('expOv');
 }
@@ -805,7 +830,9 @@ function saveExpense(){
 function deleteCurrentExp(){
   if(editIdx<0)return;
   if(confirm('確定刪除這筆記錄？')){
+    const deleted=S.expenses[editIdx];
     S.expenses.splice(editIdx,1);
+    logAction('delete',deleted);
     save();updateSummary();renderTab();
     closeOv('expOv');
   }

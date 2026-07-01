@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
+<title>伶的旅遊帳本</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --pink:#e879a0;--pk-light:#fce7f3;--pk-dark:#be185d;
+  --teal:#5bb8c4;--tl:#d6f0f3;--td:#3a9aab;
+  --bg:#fdf4f8;--card:#fff;--text:#1a2e32;--muted:#7c6f75;
+  --border:#f0d9e6;--red:#e05a5a;--green:#4caf7d;--orange:#f59e0b;
+  --r:16px;--sh:0 2px 12px rgba(232,121,160,0.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,'PingFang TC','Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:90px;}
+
+/* header */
+.hdr{background:linear-gradient(135deg,var(--pk-dark),var(--pink));color:#fff;padding:18px 18px 22px;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(190,24,93,.2);}
+.hdr-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.hdr h1{font-size:19px;font-weight:700;}
+.hdr .sub{font-size:12px;opacity:.82;margin-top:3px;}
+.hdr-btns{display:flex;gap:7px;flex-shrink:0;align-items:center;}
+.hdr-btn{background:rgba(255,255,255,.22);border:1.5px solid rgba(255,255,255,.4);color:#fff;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap;}
+
+/* loading */
+.loading-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:#fff0f6;border-bottom:1px solid var(--border);}
+.spinner{width:15px;height:15px;border:2.5px solid var(--pink);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes sIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+
+/* summary bar */
+.sum-bar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:12px 16px 0;}
+.sum-card{background:var(--card);border-radius:12px;padding:10px 7px;text-align:center;box-shadow:var(--sh);border:1px solid var(--border);}
+.sum-card .lbl{font-size:10px;color:var(--muted);margin-bottom:3px;}
+.sum-card .val{font-size:16px;font-weight:700;color:var(--pk-dark);}
+.sum-card .unt{font-size:10px;color:var(--muted);}
+
+/* currency switcher */
+.cur-bar{display:flex;align-items:center;gap:10px;padding:10px 16px 0;flex-wrap:wrap;}
+.cur-toggle{display:flex;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;background:var(--card);}
+.cur-btn{padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:none;font-family:inherit;color:var(--muted);transition:all .15s;}
+.cur-btn.active{background:var(--pink);color:#fff;}
+.rate-row{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
+.rate-inp{width:70px;padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--bg);color:var(--text);outline:none;text-align:center;}
+.rate-inp:focus{border-color:var(--pink);}
+
+/* tabs */
+.tabs{display:flex;padding:12px 16px 0;gap:7px;}
+.tab{flex:1;padding:9px 4px;text-align:center;font-size:12px;font-weight:600;border-radius:10px;cursor:pointer;border:1.5px solid var(--border);background:var(--card);color:var(--muted);transition:all .18s;font-family:inherit;}
+.tab.active{background:var(--pink);color:#fff;border-color:var(--pink);}
+
+.content{padding:12px 16px 0;}
+
+/* section title */
+.sec{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.05em;margin:14px 0 7px;text-transform:uppercase;}
+
+/* day group */
+.day-hdr{display:flex;align-items:flex-start;gap:10px;padding:14px 0 7px;}
+.day-badge{background:var(--pk-dark);color:#fff;border-radius:9px;padding:4px 11px;font-size:12px;font-weight:700;white-space:nowrap;flex-shrink:0;line-height:1.5;}
+.day-info{flex:1;}
+.day-ttl{font-size:14px;font-weight:700;}
+.day-dsc{font-size:11px;color:var(--muted);margin-top:2px;}
+.day-tot{font-size:12px;color:var(--pk-dark);font-weight:600;margin-top:3px;}
+.day-div{border:none;border-top:1.5px dashed var(--border);margin:4px 0 10px;}
+
+/* expense item */
+.exp-item{background:var(--card);border-radius:var(--r);padding:12px 13px;margin-bottom:8px;box-shadow:var(--sh);border:1px solid var(--border);display:flex;align-items:center;gap:10px;animation:sIn .2s ease;}
+.exp-item.personal{border-left:3.5px solid var(--pink);}
+.exp-item.shared{border-left:3.5px solid var(--teal);}
+.exp-item.clickable{cursor:pointer;transition:box-shadow .15s;}
+.exp-item.clickable:hover{box-shadow:0 4px 16px rgba(232,121,160,.22);}
+.exp-icon{width:38px;height:38px;border-radius:10px;background:var(--pk-light);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
+.exp-item.shared .exp-icon{background:var(--tl);}
+.exp-info{flex:1;min-width:0;}
+.exp-name{font-size:14px;font-weight:600;}
+.exp-meta{font-size:11px;color:var(--muted);margin-top:2px;display:flex;gap:5px;flex-wrap:wrap;}
+.exp-right{text-align:right;flex-shrink:0;}
+.exp-amt{font-size:15px;font-weight:700;}
+.exp-sub{font-size:10px;color:var(--muted);margin-top:1px;}
+.shared-tag{display:inline-flex;align-items:center;gap:3px;background:var(--tl);color:var(--td);border:1px solid var(--teal);border-radius:5px;padding:1px 6px;font-size:10px;font-weight:700;}
+.personal-tag{display:inline-flex;align-items:center;gap:3px;background:var(--pk-light);color:var(--pk-dark);border:1px solid var(--pink);border-radius:5px;padding:1px 6px;font-size:10px;font-weight:700;}
+.pending-chip{display:inline-flex;align-items:center;gap:3px;background:#fff7ed;color:#b45309;border:1px solid #fcd34d;border-radius:5px;padding:2px 6px;font-size:10px;font-weight:700;margin-top:3px;}
+.edit-hint{font-size:10px;color:var(--muted);opacity:.4;flex-shrink:0;}
+
+/* settle */
+.stl-card{background:var(--card);border-radius:var(--r);padding:14px;margin-bottom:8px;box-shadow:var(--sh);border:1px solid var(--border);}
+.stl-row{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:4px;}
+.stl-name{font-weight:700;font-size:15px;}
+.stl-arrow{color:var(--pink);font-weight:700;margin:0 6px;}
+.stl-amt{font-size:17px;font-weight:700;color:var(--pk-dark);margin-left:auto;}
+
+/* chart */
+.chart-wrap{background:var(--card);border-radius:var(--r);padding:16px;margin-bottom:10px;box-shadow:var(--sh);border:1px solid var(--border);}
+.chart-title{font-size:14px;font-weight:700;margin-bottom:14px;color:var(--text);}
+canvas{display:block;margin:0 auto;}
+
+/* activity log */
+.log-item{background:var(--card);border-radius:12px;padding:11px 14px;margin-bottom:7px;box-shadow:var(--sh);border:1px solid var(--border);display:flex;gap:10px;align-items:flex-start;animation:sIn .2s ease;}
+.log-action{flex-shrink:0;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.log-action.add{background:#f0fdf4;}
+.log-action.edit{background:#eff6ff;}
+.log-action.delete{background:#fff5f5;}
+.log-body{flex:1;}
+.log-name{font-size:14px;font-weight:600;}
+.log-meta{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.6;}
+.log-ip{display:inline-block;background:#f3f4f6;border-radius:5px;padding:1px 6px;font-size:10px;font-family:monospace;color:#6b7280;}
+.log-time{font-size:11px;color:var(--muted);flex-shrink:0;text-align:right;white-space:nowrap;}
+.cat-legend{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.cat-leg-item{display:flex;align-items:center;gap:7px;font-size:12px;}
+.cat-leg-dot{width:11px;height:11px;border-radius:3px;flex-shrink:0;}
+.cat-leg-name{flex:1;color:var(--text);}
+.cat-leg-amt{font-weight:700;color:var(--pk-dark);text-align:right;}
+.cat-leg-pct{font-size:10px;color:var(--muted);margin-left:3px;}
+
+/* update modal */
+.diff-item{display:flex;align-items:flex-start;gap:8px;padding:9px 12px;border-radius:10px;margin-bottom:6px;font-size:13px;}
+.diff-item.add{background:#f0fdf4;border:1px solid #86efac;}
+.diff-item.del{background:#fff5f5;border:1px solid #fca5a5;}
+.diff-icon{font-size:15px;flex-shrink:0;margin-top:1px;}
+.diff-info{flex:1;}
+.diff-name{font-weight:600;}
+.diff-meta{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* fab */
+.fab{position:fixed;bottom:24px;right:18px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--pk-dark),var(--pink));color:#fff;border:none;font-size:27px;cursor:pointer;box-shadow:0 4px 18px rgba(190,24,93,.4);display:flex;align-items:center;justify-content:center;transition:transform .15s;z-index:200;font-family:inherit;}
+.fab:active{transform:scale(.92);}
+
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .22s;}
+.ov.open{opacity:1;pointer-events:all;}
+.modal{background:var(--card);border-radius:24px 24px 0 0;padding:22px 18px 44px;width:100%;max-height:93vh;overflow-y:auto;transform:translateY(40px);transition:transform .25s ease;}
+.ov.open .modal{transform:translateY(0);}
+.modal h2{font-size:17px;font-weight:700;margin-bottom:14px;}
+.mcls{float:right;background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);margin-top:-4px;}
+
+/* form */
+.fg{margin-bottom:13px;}
+.fg label{font-size:12px;color:var(--muted);font-weight:700;display:block;margin-bottom:5px;letter-spacing:.03em;}
+.fg input,.fg select,.fg textarea{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:12px;font-size:16px;font-family:inherit;background:var(--bg);color:var(--text);outline:none;transition:border-color .15s;-webkit-appearance:none;appearance:none;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--pink);}
+.fg textarea{resize:vertical;min-height:50px;}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237c6f75' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:36px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.cat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:5px;}
+.cat-btn{aspect-ratio:1;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.cat-btn.sel{border-color:var(--pink);background:var(--pk-light);}
+.btn-p{width:100%;padding:14px;background:linear-gradient(135deg,var(--pk-dark),var(--pink));color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px;}
+.btn-p:active{opacity:.87;}
+.btn-sec{width:100%;padding:11px;background:#fff;color:var(--pk-dark);border:1.5px solid var(--pink);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px;}
+.btn-danger{width:100%;padding:11px;background:#fff;color:var(--red);border:1.5px solid var(--red);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px;}
+.empty{text-align:center;padding:44px 20px;color:var(--muted);}
+.empty .ico{font-size:46px;margin-bottom:10px;}
+.empty p{font-size:15px;line-height:1.6;}
+.ctag{display:inline-block;background:var(--pk-light);color:var(--pk-dark);border-radius:5px;padding:1px 6px;font-size:11px;font-weight:700;}
+.update-btn{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.22);border:1.5px solid rgba(255,255,255,.4);color:#fff;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit;}
+.update-dot{width:7px;height:7px;border-radius:50%;background:#fff;display:none;}
+.update-dot.has-updates{display:block;background:#fbbf24;animation:pulse 1.4s infinite;}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-top">
+    <div>
+      <h1 id="tripTitle">🌸 伶的旅遊帳本</h1>
+      <div class="sub" id="tripSub">載入中…</div>
+    </div>
+    <div class="hdr-btns">
+      <button class="update-btn" onclick="openUpdateModal()">
+        <span class="update-dot" id="updateDot"></span>
+        🔄 更新
+      </button>
+      <button class="hdr-btn" onclick="openOv('rateOv')">💱 匯率</button>
+    </div>
+  </div>
+</div>
+
+<div id="loadingBar" class="loading-bar">
+  <div class="spinner"></div>
+  <span style="font-size:13px;color:var(--muted);">連線中…</span>
+</div>
+
+<div class="sum-bar">
+  <div class="sum-card">
+    <div class="lbl">總花費</div>
+    <div class="val" id="sTotal">0</div>
+    <div class="unt" id="sCur">JPY</div>
+  </div>
+  <div class="sum-card">
+    <div class="lbl">分攤</div>
+    <div class="val" id="sShared">0</div>
+    <div class="unt" id="sSharedCur">JPY</div>
+  </div>
+  <div class="sum-card">
+    <div class="lbl">私人</div>
+    <div class="val" id="sPersonal">0</div>
+    <div class="unt" id="sPersonalCur">JPY</div>
+  </div>
+</div>
+
+<div class="cur-bar">
+  <div class="cur-toggle">
+    <button class="cur-btn active" id="curJPY" onclick="setCur('JPY')">JPY</button>
+    <button class="cur-btn" id="curTWD" onclick="setCur('TWD')">TWD</button>
+  </div>
+  <div class="rate-row" id="rateHint" style="display:none">
+    1 JPY = <input class="rate-inp" id="rateInp" type="number" value="0.22" min="0.0001" step="0.0001" onchange="updateSummary();renderTab()"> TWD
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('expenses',this)">💳 明細</button>
+  <button class="tab" onclick="switchTab('chart',this)">🥧 圓餅圖</button>
+  <button class="tab" onclick="switchTab('settle',this)">💸 結算</button>
+  <button class="tab" onclick="switchTab('log',this)">📋 記錄</button>
+</div>
+
+<div class="content" id="tabContent"></div>
+<button class="fab" onclick="openAddExp(-1)">＋</button>
+
+<!-- ══ Add/Edit Personal Expense Modal ══ -->
+<div class="ov" id="expOv">
+  <div class="modal">
+    <button class="mcls" onclick="closeOv('expOv')">✕</button>
+    <h2 id="expModalTitle">新增私人支出</h2>
+    <div class="fg">
+      <label>類別</label>
+      <div class="cat-grid" id="catGrid"></div>
+    </div>
+    <div class="fg">
+      <label>名稱</label>
+      <input type="text" id="expName" placeholder="例：咖啡、按摩">
+    </div>
+    <div class="row2">
+      <div class="fg">
+        <label>金額</label>
+        <input type="number" id="expAmt" placeholder="0" inputmode="decimal">
+      </div>
+      <div class="fg">
+        <label>幣別</label>
+        <select id="expCur">
+          <option value="JPY">JPY 日幣</option>
+          <option value="TWD">TWD 台幣</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg">
+      <label>日期</label>
+      <select id="expDay"></select>
+    </div>
+    <div class="fg">
+      <label>備註</label>
+      <textarea id="expNote" placeholder="選填"></textarea>
+    </div>
+    <button class="btn-p" id="expSaveBtn" onclick="savePersonalExp()">新增</button>
+    <button class="btn-danger" id="expDelBtn" onclick="delPersonalExp()" style="display:none">🗑 刪除此筆</button>
+  </div>
+</div>
+
+<!-- ══ Update Modal ══ -->
+<div class="ov" id="updateOv">
+  <div class="modal">
+    <button class="mcls" onclick="closeOv('updateOv')">✕</button>
+    <h2>🔄 帳目更新預覽</h2>
+    <div id="diffContent"></div>
+    <button class="btn-p" id="confirmImportBtn" onclick="confirmImport()" style="display:none">✓ 確認匯入</button>
+    <button class="btn-sec" onclick="closeOv('updateOv')">關閉</button>
+  </div>
+</div>
+
+<!-- ══ Rate Modal ══ -->
+<div class="ov" id="rateOv">
+  <div class="modal">
+    <button class="mcls" onclick="closeOv('rateOv')">✕</button>
+    <h2>💱 匯率設定</h2>
+    <div class="fg">
+      <label>1 JPY = ? TWD</label>
+      <input type="number" id="rateModal" placeholder="例：0.22" min="0.0001" step="0.0001">
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">設定後所有金額換算都會套用這個匯率（例：1 JPY = 0.22 TWD）</div>
+    <button class="btn-p" onclick="saveRate()">儲存匯率</button>
+  </div>
+</div>
+
+<script>
+const CATS=[
+  {e:'🍳',n:'早餐'},{e:'🍱',n:'午餐'},{e:'🍜',n:'晚餐'},
+  {e:'🍰',n:'點心'},{e:'🚌',n:'交通'},{e:'🎫',n:'門票'},
+  {e:'🛒',n:'超市'},{e:'🛍️',n:'購物'},{e:'💵',n:'現金'},{e:'🗂️',n:'其他'}
+];
+const MY_NAME='伶';
+const SHARED_DOC='main';
+const PERSONAL_DOC='personal_ling';
+
+// Chart colors
+const CAT_COLORS=['#f97316','#eab308','#22c55e','#06b6d4','#6366f1','#ec4899','#14b8a6','#f43f5e','#8b5cf6','#64748b'];
+
+let db=null,_doc=null,_setDoc=null,_onSnapshot=null;
+let sharedData={title:'',startDate:'',currency:'JPY',members:[],days:[],expenses:[]};
+let personalData={expenses:[],rate:0.22};
+let snapshottedShared=null; // last imported version
+let latestShared=null; // live from firebase
+let viewCur='JPY';
+let selCat=0;
+let editIdx=-1;
+let activeTab='expenses';
+let pieChart=null;
+
+function fmt(n,cur){
+  const v=Math.round(Math.abs(n)).toLocaleString();
+  return (n<0?'-':'')+v;
+}
+function getRate(){return parseFloat(document.getElementById('rateInp').value)||4.5;}
+
+// convert any amount to viewCur
+function toView(amount,srcCur){
+  const rate=getRate(); // 1 JPY = rate TWD
+  if(viewCur===srcCur) return amount;
+  if(viewCur==='TWD'&&srcCur==='JPY') return amount*rate;
+  if(viewCur==='JPY'&&srcCur==='TWD') return amount/rate;
+  return amount;
+}
+
+// shared currency
+function sharedCur(){return sharedData.currency||'JPY';}
+
+/* ── Firebase ── */
+async function initFirebase(){
+  showLoading(true);
+  try{
+    const {initializeApp}=await import('https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js');
+    const fs=await import('https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js');
+    _doc=fs.doc;_setDoc=fs.setDoc;_onSnapshot=fs.onSnapshot;
+    const app=initializeApp({
+      apiKey:"AIzaSyBdafhHvxeTzjA3rm-pK0VPNGCBNsKyTog",
+      authDomain:"trippocket-c176b.firebaseapp.com",
+      projectId:"trippocket-c176b",
+      storageBucket:"trippocket-c176b.firebasestorage.app",
+      messagingSenderId:"519983034176",
+      appId:"1:519983034176:web:c085893ec2a643e81ed4a5"
+    });
+    db=fs.getFirestore(app);
+
+    // Listen to shared data
+    _onSnapshot(_doc(db,'tripdata',SHARED_DOC),snap=>{
+      if(snap.exists()){
+        latestShared={...snap.data()};
+        checkForUpdates();
+      }
+    });
+
+    // Listen to personal data
+    _onSnapshot(_doc(db,'tripdata',PERSONAL_DOC),snap=>{
+      if(snap.exists()){
+        const d=snap.data();
+        personalData={...personalData,...d};
+        document.getElementById('rateInp').value=personalData.rate||0.22;
+      }
+      showLoading(false);
+      // if no snapshottedShared yet, auto-import on first load
+      if(!snapshottedShared&&latestShared){
+        snapshottedShared=JSON.parse(JSON.stringify(latestShared));
+        sharedData={...latestShared};
+      }
+      updateHeader();updateSummary();renderTab();
+    });
+  }catch(err){
+    console.error(err);
+    showLoading(false);
+    document.getElementById('loadingBar').innerHTML='<div style="color:var(--red);padding:12px 16px;font-size:13px;">⚠️ 無法連線，請確認網路</div>';
+  }
+}
+
+async function savePersonal(){
+  if(!db||!_doc||!_setDoc)return;
+  try{
+    await _setDoc(_doc(db,'tripdata',PERSONAL_DOC),JSON.parse(JSON.stringify(personalData)));
+  }catch(e){console.error(e);}
+}
+
+function showLoading(show){
+  const el=document.getElementById('loadingBar');
+  if(el)el.style.display=show?'flex':'none';
+}
+
+/* ── Update detection ── */
+function checkForUpdates(){
+  if(!snapshottedShared||!latestShared) return;
+  const oldExps=snapshottedShared.expenses||[];
+  const newExps=latestShared.expenses||[];
+  const {added,removed}=diffExpenses(oldExps,newExps);
+  const dot=document.getElementById('updateDot');
+  if(dot) dot.classList.toggle('has-updates',added.length>0||removed.length>0);
+}
+
+function diffExpenses(oldArr,newArr){
+  function key(e){return JSON.stringify({name:e.name,amount:e.amount,payer:e.payer,cat:e.cat,dayIndex:e.dayIndex});}
+  const oldKeys=new Set(oldArr.map(key));
+  const newKeys=new Set(newArr.map(key));
+  const added=newArr.filter(e=>!oldKeys.has(key(e))&&!e._settle);
+  const removed=oldArr.filter(e=>!newKeys.has(key(e))&&!e._settle);
+  return{added,removed};
+}
+
+function openUpdateModal(){
+  if(!latestShared){
+    document.getElementById('diffContent').innerHTML='<div class="empty"><div class="ico">🔄</div><p>尚未載入共用資料</p></div>';
+    openOv('updateOv');return;
+  }
+  const oldExps=snapshottedShared?(snapshottedShared.expenses||[]):[];
+  const newExps=latestShared.expenses||[];
+  const{added,removed}=diffExpenses(oldExps,newExps);
+
+  let html='';
+  if(!added.length&&!removed.length){
+    html='<div class="empty"><div class="ico">✅</div><p>帳目沒有變動</p></div>';
+    document.getElementById('confirmImportBtn').style.display='none';
+  } else {
+    document.getElementById('confirmImportBtn').style.display='';
+    if(added.length){
+      html+=`<div class="sec">✅ 新增 ${added.length} 筆</div>`;
+      html+=added.map(e=>{
+        const cat=CATS[e.cat]||CATS[9];
+        const day=e.dayIndex!=null?`Day${e.dayIndex+1}`:'未指定';
+        return`<div class="diff-item add">
+          <div class="diff-icon">＋</div>
+          <div class="diff-info">
+            <div class="diff-name">${e.name}</div>
+            <div class="diff-meta">${day} · ${cat.e}${cat.n} · ${e.amount?Math.round(e.amount).toLocaleString()+' '+sharedCur():'待填'} · 付款人：${e.payer||'—'}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+    if(removed.length){
+      html+=`<div class="sec">🗑 刪除 ${removed.length} 筆</div>`;
+      html+=removed.map(e=>{
+        const cat=CATS[e.cat]||CATS[9];
+        return`<div class="diff-item del">
+          <div class="diff-icon">－</div>
+          <div class="diff-info">
+            <div class="diff-name">${e.name}</div>
+            <div class="diff-meta">${cat.e}${cat.n} · ${e.amount?Math.round(e.amount).toLocaleString()+' '+sharedCur():'待填'}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+  document.getElementById('diffContent').innerHTML=html;
+  openOv('updateOv');
+}
+
+function confirmImport(){
+  snapshottedShared=JSON.parse(JSON.stringify(latestShared));
+  sharedData={...latestShared};
+  const dot=document.getElementById('updateDot');
+  if(dot)dot.classList.remove('has-updates');
+  updateHeader();updateSummary();renderTab();
+  closeOv('updateOv');
+}
+
+/* ── header / summary ── */
+function updateHeader(){
+  document.getElementById('tripTitle').textContent='🌸 '+(sharedData.title||'伶的旅遊帳本');
+  const sub=sharedData.days&&sharedData.days.length
+    ?sharedData.days.map((d,i)=>'Day'+(i+1)+(d.date?' '+d.date:'')).slice(0,3).join('・')+(sharedData.days.length>3?'…':'')
+    :'個人記帳頁面';
+  document.getElementById('tripSub').textContent=sub;
+}
+
+function getMySharedShare(){
+  // expenses where I'm in split, return my share in sharedCur
+  return (sharedData.expenses||[]).filter(e=>!e._settle&&e.amount>0).reduce((s,e)=>{
+    const sh=calcExpShares(e,sharedData.members);
+    return s+(sh[MY_NAME]||0);
+  },0);
+}
+
+function getMyPersonalTotal(){
+  // total personal expenses in viewCur
+  return (personalData.expenses||[]).reduce((s,e)=>{
+    return s+toView(e.amount||0, e.currency||sharedCur());
+  },0);
+}
+
+function updateSummary(){
+  const sharedShare=toView(getMySharedShare(), sharedCur());
+  const personalTotal=getMyPersonalTotal();
+  const total=sharedShare+personalTotal;
+  document.getElementById('sTotal').textContent=fmt(total);
+  document.getElementById('sShared').textContent=fmt(sharedShare);
+  document.getElementById('sPersonal').textContent=fmt(personalTotal);
+  ['sCur','sSharedCur','sPersonalCur'].forEach(id=>document.getElementById(id).textContent=viewCur);
+  document.getElementById('rateHint').style.display=viewCur==='TWD'?'flex':'none';
+}
+
+function setCur(cur){
+  viewCur=cur;
+  document.getElementById('curJPY').classList.toggle('active',cur==='JPY');
+  document.getElementById('curTWD').classList.toggle('active',cur==='TWD');
+  updateSummary();renderTab();
+}
+
+/* ── tabs ── */
+function switchTab(tab,el){
+  activeTab=tab;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderTab();
+}
+function renderTab(){
+  const c=document.getElementById('tabContent');
+  if(activeTab==='expenses') c.innerHTML=renderExpenses();
+  else if(activeTab==='chart'){c.innerHTML=renderChartHTML();drawChart();}
+  else if(activeTab==='log'){c.innerHTML=renderLog();loadLog();}
+  else c.innerHTML=renderSettle();
+}
+
+/* ── expenses tab ── */
+function getMySharedItems(){
+  return (sharedData.expenses||[]).filter(e=>!e._settle).map(e=>{
+    const sh=calcExpShares(e,sharedData.members);
+    const myShare=sh[MY_NAME]||0;
+    return{...e,_myShare:myShare,_isShared:true};
+  }).filter(e=>e._myShare>0||(e._myShare===0&&e.split&&e.split.includes(MY_NAME)));
+}
+
+function renderExpenses(){
+  const sharedItems=getMySharedItems();
+  const personalItems=(personalData.expenses||[]).map((e,i)=>({...e,_pIdx:i,_isShared:false}));
+  const allItems=[...sharedItems,...personalItems];
+
+  if(!allItems.length) return empty('🧾','還沒有任何帳目<br>點 ＋ 新增私人支出');
+
+  // Group by day
+  const groups={};
+  allItems.forEach(e=>{
+    const k=e.dayIndex!=null?e.dayIndex:'none';
+    if(!groups[k])groups[k]=[];
+    groups[k].push(e);
+  });
+
+  const keys=Object.keys(groups).sort((a,b)=>{
+    if(a==='none')return 1;if(b==='none')return -1;
+    return parseInt(a)-parseInt(b);
+  });
+
+  let html='';
+  keys.forEach((key,gi)=>{
+    const items=groups[key];
+    const dayTotal=items.reduce((s,e)=>{
+      if(e._isShared) return s+toView(e._myShare||0,sharedCur());
+      return s+toView(e.amount||0,e.currency||sharedCur());
+    },0);
+
+    if(key==='none'){
+      html+=`<div class="day-hdr"><div class="day-badge">未分類</div><div class="day-info">
+        <div class="day-tot">共 ${fmt(dayTotal)} ${viewCur}</div>
+      </div></div>`;
+    } else {
+      const d=(sharedData.days||[])[parseInt(key)]||{};
+      html+=`<div class="day-hdr">
+        <div class="day-badge">Day ${parseInt(key)+1}${d.date?' · '+d.date:''}</div>
+        <div class="day-info">
+          ${d.title?`<div class="day-ttl">${d.title}</div>`:''}
+          ${d.desc?`<div class="day-dsc">${d.desc}</div>`:''}
+          <div class="day-tot">共 ${fmt(dayTotal)} ${viewCur}</div>
+        </div>
+      </div>`;
+    }
+
+    items.forEach(e=>{
+      if(e._isShared) html+=renderSharedItem(e);
+      else html+=renderPersonalItem(e);
+    });
+
+    if(gi<keys.length-1) html+=`<hr class="day-div">`;
+  });
+  return html;
+}
+
+function renderSharedItem(e){
+  const cat=CATS[e.cat]||CATS[9];
+  const pending=!e.amount;
+  const myShareView=toView(e._myShare||0,sharedCur());
+  return`<div class="exp-item shared">
+    <div class="exp-icon">${cat.e}</div>
+    <div class="exp-info">
+      <div class="exp-name">${e.name}</div>
+      <div class="exp-meta">
+        <span class="shared-tag">👥 共用</span>
+        <span>${cat.n}</span>
+        ${e.payer?`<span>💳 ${e.payer}</span>`:''}
+        ${e.note?`<span>📝 ${e.note}</span>`:''}
+      </div>
+      ${pending?`<div class="pending-chip">⏳ 待填金額</div>`:''}
+    </div>
+    <div class="exp-right">
+      <div class="exp-amt" style="color:var(--td)">${pending?'—':fmt(myShareView)}</div>
+      <div class="exp-sub">${pending?'待填':viewCur}</div>
+    </div>
+  </div>`;
+}
+
+function renderPersonalItem(e){
+  const cat=CATS[e.cat]||CATS[9];
+  const amtView=toView(e.amount||0,e.currency||sharedCur());
+  const pIdx=e._pIdx;
+  return`<div class="exp-item personal clickable" onclick="openAddExp(${pIdx})">
+    <div class="exp-icon">${cat.e}</div>
+    <div class="exp-info">
+      <div class="exp-name">${e.name}</div>
+      <div class="exp-meta">
+        <span class="personal-tag">🔒 私人</span>
+        <span>${cat.n}</span>
+        ${e.currency&&e.currency!==viewCur?`<span>${Math.round(e.amount||0).toLocaleString()} ${e.currency}</span>`:''}
+        ${e.note?`<span>📝 ${e.note}</span>`:''}
+      </div>
+    </div>
+    <div class="exp-right">
+      <div class="exp-amt">${fmt(amtView)}</div>
+      <div class="exp-sub">${viewCur}</div>
+    </div>
+    <span class="edit-hint">✏️</span>
+  </div>`;
+}
+
+/* ── chart tab ── */
+function renderChartHTML(){
+  return`<div class="chart-wrap">
+    <div class="chart-title">各類別花費</div>
+    <canvas id="pieCanvas" width="240" height="240"></canvas>
+    <div class="cat-legend" id="catLegend"></div>
+  </div>`;
+}
+
+function drawChart(){
+  const catTotals={};
+  CATS.forEach((_,i)=>catTotals[i]=0);
+
+  // shared my share
+  getMySharedItems().forEach(e=>{
+    if(e._myShare>0){
+      const v=toView(e._myShare,sharedCur());
+      catTotals[e.cat!=null?e.cat:9]=(catTotals[e.cat!=null?e.cat:9]||0)+v;
+    }
+  });
+
+  // personal
+  (personalData.expenses||[]).forEach(e=>{
+    const v=toView(e.amount||0,e.currency||sharedCur());
+    catTotals[e.cat!=null?e.cat:9]=(catTotals[e.cat!=null?e.cat:9]||0)+v;
+  });
+
+  const total=Object.values(catTotals).reduce((s,v)=>s+v,0);
+  if(!total){
+    document.getElementById('catLegend').innerHTML='<div style="color:var(--muted);font-size:13px;grid-column:span 2;text-align:center;padding:20px 0;">還沒有花費資料</div>';
+    return;
+  }
+
+  const data=CATS.map((c,i)=>({label:c.e+c.n,value:catTotals[i]||0,color:CAT_COLORS[i],idx:i})).filter(d=>d.value>0).sort((a,b)=>b.value-a.value);
+
+  // draw pie
+  const canvas=document.getElementById('pieCanvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const cx=120,cy=120,r=100,ir=52;
+  ctx.clearRect(0,0,240,240);
+
+  let startAngle=-Math.PI/2;
+  data.forEach(d=>{
+    const angle=2*Math.PI*d.value/total;
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,startAngle,startAngle+angle);
+    ctx.closePath();
+    ctx.fillStyle=d.color;
+    ctx.fill();
+    // inner hole
+    ctx.beginPath();
+    ctx.arc(cx,cy,ir,0,2*Math.PI);
+    ctx.fillStyle='#fff';
+    ctx.fill();
+    startAngle+=angle;
+  });
+
+  // center text
+  ctx.fillStyle=VAR('--pk-dark')||'#be185d';
+  ctx.font='bold 14px -apple-system,PingFang TC,sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText(viewCur,cx,cy-4);
+  ctx.font='bold 16px -apple-system,PingFang TC,sans-serif';
+  ctx.fillText(fmt(total),cx,cy+16);
+
+  // legend
+  const leg=document.getElementById('catLegend');
+  if(leg){
+    leg.innerHTML=data.map(d=>`
+      <div class="cat-leg-item">
+        <div class="cat-leg-dot" style="background:${d.color}"></div>
+        <div class="cat-leg-name">${d.label}</div>
+        <div class="cat-leg-amt">${fmt(d.value)}<span class="cat-leg-pct">${Math.round(d.value/total*100)}%</span></div>
+      </div>
+    `).join('');
+  }
+}
+
+function VAR(name){
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+/* ── settle tab ── */
+function renderSettle(){
+  if(!(sharedData.members||[]).length) return empty('💸','共用頁面尚未設定成員');
+  const bal=calcSharedBal();
+  const myNet=bal[MY_NAME]||0;
+
+  let html=`<div class="sec">我的結算狀況</div>`;
+
+  if(Math.abs(myNet)<0.5){
+    html+=`<div class="stl-card"><div style="text-align:center;font-size:15px;color:var(--green);font-weight:700;padding:8px 0;">✅ 帳目已結清！</div></div>`;
+  } else if(myNet<0){
+    // I owe money → find who I owe
+    const txns=calcSettlements(bal);
+    const mine=txns.filter(t=>t.from===MY_NAME);
+    html+=mine.map(t=>`<div class="stl-card">
+      <div class="stl-row">
+        <span class="stl-name">我</span>
+        <span class="stl-arrow">→</span>
+        <span class="stl-name">${t.to}</span>
+        <span class="stl-amt">${fmt(toView(t.amount,sharedCur()))} ${viewCur}</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);">我需要還款給 ${t.to}</div>
+    </div>`).join('');
+  } else {
+    const txns=calcSettlements(bal);
+    const mine=txns.filter(t=>t.to===MY_NAME);
+    html+=mine.map(t=>`<div class="stl-card">
+      <div class="stl-row">
+        <span class="stl-name">${t.from}</span>
+        <span class="stl-arrow">→</span>
+        <span class="stl-name">我</span>
+        <span class="stl-amt">${fmt(toView(t.amount,sharedCur()))} ${viewCur}</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);">${t.from} 需要還款給我</div>
+    </div>`).join('');
+  }
+
+  html+=`<div class="sec">所有人餘額</div>`;
+  html+=(sharedData.members||[]).map(m=>{
+    const net=bal[m]||0;
+    const cls=net>0.5?'pos':net<-0.5?'neg':'zer';
+    const colors={pos:'var(--green)',neg:'var(--red)',zer:'var(--muted)'};
+    const isMe=m===MY_NAME;
+    return`<div class="stl-card" style="${isMe?'border:2px solid var(--pink);':''}">
+      <div class="stl-row">
+        <span class="stl-name">${isMe?'🌸 我（'+m+'）':m}</span>
+        <span style="font-size:15px;font-weight:700;color:${colors[cls]};margin-left:auto;">${net>=0?'+':''}${fmt(toView(net,sharedCur()))} ${viewCur}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  return html;
+}
+
+/* ── calculations ── */
+function calcExpShares(e,members){
+  const r={};
+  const mem=members||sharedData.members||[];
+  if(e.splitMode==='equal'){
+    const sp=e.split&&e.split.length?e.split:mem;
+    sp.forEach(m=>r[m]=e.amount/sp.length);
+  } else if(e.splitMode==='ratio'&&e.ratios){
+    const t=Object.values(e.ratios).reduce((s,v)=>s+v,0);
+    if(t>0) Object.entries(e.ratios).forEach(([m,v])=>{if(v>0)r[m]=e.amount*v/t;});
+  } else if(e.splitMode==='amount'&&e.amounts){
+    let asgn=0;
+    Object.entries(e.amounts).forEach(([m,v])=>{r[m]=v;asgn+=v;});
+    const rem=e.amount-asgn;
+    if(e.payer&&rem>0.01) r[e.payer]=(r[e.payer]||0)+rem;
+  } else {
+    mem.forEach(m=>r[m]=e.amount/Math.max(1,mem.length));
+  }
+  return r;
+}
+
+function calcSharedBal(){
+  const bal={};
+  (sharedData.members||[]).forEach(m=>bal[m]=0);
+  (sharedData.expenses||[]).filter(e=>!e._settle&&e.amount>0).forEach(e=>{
+    if(e.payer&&bal[e.payer]!==undefined) bal[e.payer]+=e.amount;
+    const sh=calcExpShares(e,sharedData.members);
+    Object.entries(sh).forEach(([m,v])=>{if(bal[m]!==undefined)bal[m]-=v;});
+  });
+  (sharedData.expenses||[]).filter(e=>e._settle).forEach(e=>{
+    if(e._from&&bal[e._from]!==undefined) bal[e._from]-=e.amount;
+    if(e._to&&bal[e._to]!==undefined) bal[e._to]+=e.amount;
+  });
+  return bal;
+}
+
+function calcSettlements(bal){
+  const pos=[],neg=[];
+  Object.entries(bal).forEach(([m,v])=>{
+    if(v>0.5)pos.push({m,v});else if(v<-0.5)neg.push({m,v:-v});
+  });
+  pos.sort((a,b)=>b.v-a.v);neg.sort((a,b)=>b.v-a.v);
+  const txns=[];let pi=0,ni=0;
+  while(pi<pos.length&&ni<neg.length){
+    const amt=Math.min(pos[pi].v,neg[ni].v);
+    txns.push({from:neg[ni].m,to:pos[pi].m,amount:amt});
+    pos[pi].v-=amt;neg[ni].v-=amt;
+    if(pos[pi].v<0.5)pi++;if(neg[ni].v<0.5)ni++;
+  }
+  return txns;
+}
+
+/* ── personal expense modal ── */
+function openAddExp(idx){
+  editIdx=idx;
+  const isEdit=idx>=0;
+  const e=isEdit?(personalData.expenses||[])[idx]:null;
+
+  document.getElementById('expModalTitle').textContent=isEdit?'編輯私人支出':'新增私人支出';
+  document.getElementById('expSaveBtn').textContent=isEdit?'儲存修改':'新增';
+  document.getElementById('expDelBtn').style.display=isEdit?'':'none';
+
+  selCat=isEdit?(e.cat||0):0;
+  document.getElementById('expName').value=isEdit?e.name:'';
+  document.getElementById('expAmt').value=isEdit&&e.amount?e.amount:'';
+  document.getElementById('expNote').value=isEdit?(e.note||''):'';
+  document.getElementById('expCur').value=isEdit?(e.currency||sharedCur()):sharedCur();
+
+  document.getElementById('catGrid').innerHTML=CATS.map((c,i)=>
+    `<button class="cat-btn${i===selCat?' sel':''}" onclick="selCatFn(${i})">${c.e}</button>`
+  ).join('');
+
+  const ds=document.getElementById('expDay');
+  ds.innerHTML=`<option value="-1">— 未指定 —</option>`+
+    (sharedData.days||[]).map((d,i)=>`<option value="${i}">Day${i+1}${d.date?' · '+d.date:''}${d.title?' '+d.title:''}</option>`).join('');
+  if(isEdit&&e.dayIndex!=null) ds.value=e.dayIndex; else ds.value='-1';
+
+  openOv('expOv');
+}
+
+function selCatFn(i){
+  selCat=i;
+  document.querySelectorAll('.cat-btn').forEach((b,j)=>b.classList.toggle('sel',i===j));
+}
+
+function savePersonalExp(){
+  const name=document.getElementById('expName').value.trim();
+  const amt=parseFloat(document.getElementById('expAmt').value)||0;
+  const note=document.getElementById('expNote').value.trim();
+  const currency=document.getElementById('expCur').value;
+  const dayVal=document.getElementById('expDay').value;
+  const dayIndex=dayVal==='-1'?undefined:parseInt(dayVal);
+
+  if(!name){alert('請填寫名稱');return;}
+
+  const entry={name,amount:amt,currency,note,cat:selCat,dayIndex};
+  if(!personalData.expenses) personalData.expenses=[];
+
+  if(editIdx>=0) personalData.expenses[editIdx]=entry;
+  else personalData.expenses.push(entry);
+
+  savePersonal();updateSummary();renderTab();
+  closeOv('expOv');
+}
+
+function delPersonalExp(){
+  if(editIdx<0)return;
+  if(confirm('確定刪除這筆私人記錄？')){
+    personalData.expenses.splice(editIdx,1);
+    savePersonal();updateSummary();renderTab();
+    closeOv('expOv');
+  }
+}
+
+/* ── rate modal ── */
+function saveRate(){
+  const r=parseFloat(document.getElementById('rateModal').value);
+  if(!r||r<=0){alert('請輸入正確匯率');return;}
+  document.getElementById('rateInp').value=r;
+  personalData.rate=r;
+  savePersonal();
+  updateSummary();renderTab();
+  closeOv('rateOv');
+}
+
+document.getElementById('rateOv').addEventListener('click',e=>{
+  if(e.target===document.getElementById('rateOv')){
+    // sync rate modal input
+    document.getElementById('rateModal').value=document.getElementById('rateInp').value;
+  }
+});
+
+/* ── activity log ── */
+let activityLogs=[];
+async function loadLog(){
+  if(!db)return;
+  try{
+    const {collection,query,orderBy,limit,getDocs}=await import('https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js');
+    const q=query(collection(db,'activitylog'),orderBy('time','desc'),limit(100));
+    const snap=await getDocs(q);
+    activityLogs=snap.docs.map(d=>d.data());
+    if(activeTab==='log') renderTab();
+  }catch(e){console.error('log load error',e);}
+}
+
+function renderLog(){
+  if(!activityLogs.length) return empty('📋','還沒有任何操作記錄');
+  const actionLabel={add:'新增',edit:'編輯',delete:'刪除'};
+  const actionIcon={add:'➕',edit:'✏️',delete:'🗑'};
+  return`<div class="sec">操作記錄（最近 100 筆）</div>`+activityLogs.map(l=>{
+    const t=new Date(l.time);
+    const timeStr=`${t.getMonth()+1}/${t.getDate()} ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+    const act=l.action||'add';
+    return`<div class="log-item">
+      <div class="log-action ${act}">${actionIcon[act]||'•'}</div>
+      <div class="log-body">
+        <div class="log-name">${actionLabel[act]||act}　${l.name||''}</div>
+        <div class="log-meta">
+          ${l.day||''}　${l.cat||''}　${l.amount||''}
+          ${l.payer?`　💳 ${l.payer}`:''}
+          <br><span class="log-ip">${l.ip||'unknown'}</span>
+        </div>
+      </div>
+      <div class="log-time">${timeStr}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ── helpers ── */
+function empty(ico,msg){return`<div class="empty"><div class="ico">${ico}</div><p>${msg}</p></div>`;}
+function openOv(id){
+  if(id==='rateOv') document.getElementById('rateModal').value=document.getElementById('rateInp').value;
+  document.getElementById(id).classList.add('open');
+}
+function closeOv(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.ov').forEach(o=>{
+  o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});
+});
+
+/* ── init ── */
+initFirebase();
+</script>
+</body>
+</html>
