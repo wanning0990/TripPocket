@@ -210,7 +210,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     <button class="cur-btn" id="curTWD" onclick="setCur('TWD')">TWD</button>
   </div>
   <div class="rate-row" id="rateHint" style="display:none">
-    1 JPY = <input class="rate-inp" id="rateInp" type="number" value="0.22" min="0.0001" step="0.0001" onchange="updateSummary();renderTab()"> TWD
+    1 JPY = <input class="rate-inp" id="rateInp" type="number" value="0.22" min="0.0001" step="0.0001" onchange="personalData.rate=parseFloat(this.value)||0.22;savePersonal();updateSummary();renderTab()"> TWD
   </div>
 </div>
 
