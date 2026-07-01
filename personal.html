@@ -905,12 +905,18 @@ let activityLogs=[];
 async function loadLog(){
   if(!db)return;
   try{
-    const {collection,query,orderBy,limit,getDocs}=await import('https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js');
-    const q=query(collection(db,'activitylog'),orderBy('time','desc'),limit(100));
-    const snap=await getDocs(q);
-    activityLogs=snap.docs.map(d=>d.data());
-    if(activeTab==='log') renderTab();
-  }catch(e){console.error('log load error',e);}
+    const {collection,getDocs}=await import('https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js');
+    const snap=await getDocs(collection(db,'activitylog'));
+    activityLogs=snap.docs.map(d=>d.data()).sort((a,b)=>b.time.localeCompare(a.time)).slice(0,100);
+    if(activeTab==='log'){
+      document.getElementById('tabContent').innerHTML=renderLog();
+    }
+  }catch(e){
+    console.error('log load error',e);
+    if(activeTab==='log'){
+      document.getElementById('tabContent').innerHTML='<div style="color:var(--red);padding:20px;font-size:13px;">⚠️ 無法載入記錄：'+e.message+'</div>';
+    }
+  }
 }
 
 function renderLog(){
