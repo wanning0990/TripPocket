@@ -10,17 +10,17 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
-  --pink:#e879a0;--pk-light:#fce7f3;--pk-dark:#be185d;
-  --teal:#5bb8c4;--tl:#d6f0f3;--td:#3a9aab;
-  --bg:#fdf4f8;--card:#fff;--text:#1a2e32;--muted:#7c6f75;
-  --border:#f0d9e6;--red:#e05a5a;--green:#4caf7d;--orange:#f59e0b;
-  --r:16px;--sh:0 2px 12px rgba(232,121,160,0.12);
+  --pink:#7a9db8;--pk-light:#e8f0f7;--pk-dark:#4a6f8a;
+  --teal:#8fb4c8;--tl:#deeaf2;--td:#5a8ba8;
+  --bg:#f4f7fa;--card:#fff;--text:#2c3e4a;--muted:#7a8e9a;
+  --border:#d0dde8;--red:#c0736a;--green:#7aab8a;--orange:#c8976a;
+  --r:16px;--sh:0 2px 12px rgba(74,111,138,0.10);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,'PingFang TC','Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:90px;}
 
 /* header */
-.hdr{background:linear-gradient(135deg,var(--pk-dark),var(--pink));color:#fff;padding:18px 18px 22px;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(190,24,93,.2);}
+.hdr{background:linear-gradient(135deg,#3d6278,#7a9db8);color:#fff;padding:18px 18px 22px;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(61,98,120,.2);}
 .hdr-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
 .hdr h1{font-size:19px;font-weight:700;}
 .hdr .sub{font-size:12px;opacity:.82;margin-top:3px;}
@@ -28,8 +28,8 @@ body{font-family:-apple-system,'PingFang TC','Noto Sans TC',sans-serif;backgroun
 .hdr-btn{background:rgba(255,255,255,.22);border:1.5px solid rgba(255,255,255,.4);color:#fff;border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap;}
 
 /* loading */
-.loading-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:#fff0f6;border-bottom:1px solid var(--border);}
-.spinner{width:15px;height:15px;border:2.5px solid var(--pink);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;}
+.loading-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:#edf3f8;border-bottom:1px solid var(--border);}
+.spinner{width:15px;height:15px;border:2.5px solid #7a9db8;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 @keyframes sIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
@@ -45,7 +45,7 @@ body{font-family:-apple-system,'PingFang TC','Noto Sans TC',sans-serif;backgroun
 .cur-bar{display:flex;align-items:center;gap:10px;padding:10px 16px 0;flex-wrap:wrap;}
 .cur-toggle{display:flex;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;background:var(--card);}
 .cur-btn{padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:none;font-family:inherit;color:var(--muted);transition:all .15s;}
-.cur-btn.active{background:var(--pink);color:#fff;}
+.cur-btn.active{background:#7a9db8;color:#fff;}
 .rate-row{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
 .rate-inp{width:70px;padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--bg);color:var(--text);outline:none;text-align:center;}
 .rate-inp:focus{border-color:var(--pink);}
@@ -53,7 +53,7 @@ body{font-family:-apple-system,'PingFang TC','Noto Sans TC',sans-serif;backgroun
 /* tabs */
 .tabs{display:flex;padding:12px 16px 0;gap:7px;}
 .tab{flex:1;padding:9px 4px;text-align:center;font-size:12px;font-weight:600;border-radius:10px;cursor:pointer;border:1.5px solid var(--border);background:var(--card);color:var(--muted);transition:all .18s;font-family:inherit;}
-.tab.active{background:var(--pink);color:#fff;border-color:var(--pink);}
+.tab.active{background:#7a9db8;color:#fff;border-color:#7a9db8;}
 
 .content{padding:12px 16px 0;}
 
@@ -128,7 +128,7 @@ canvas{display:block;margin:0 auto;}
 .diff-meta{font-size:11px;color:var(--muted);margin-top:2px;}
 
 /* fab */
-.fab{position:fixed;bottom:24px;right:18px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--pk-dark),var(--pink));color:#fff;border:none;font-size:27px;cursor:pointer;box-shadow:0 4px 18px rgba(190,24,93,.4);display:flex;align-items:center;justify-content:center;transition:transform .15s;z-index:200;font-family:inherit;}
+.fab{position:fixed;bottom:24px;right:18px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#3d6278,#7a9db8);color:#fff;border:none;font-size:27px;cursor:pointer;box-shadow:0 4px 18px rgba(61,98,120,.3);display:flex;align-items:center;justify-content:center;transition:transform .15s;z-index:200;font-family:inherit;}
 .fab:active{transform:scale(.92);}
 
 /* modal */
@@ -150,7 +150,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .cat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:5px;}
 .cat-btn{aspect-ratio:1;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
 .cat-btn.sel{border-color:var(--pink);background:var(--pk-light);}
-.btn-p{width:100%;padding:14px;background:linear-gradient(135deg,var(--pk-dark),var(--pink));color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px;}
+.btn-p{width:100%;padding:14px;background:linear-gradient(135deg,#3d6278,#7a9db8);color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px;}
 .btn-p:active{opacity:.87;}
 .btn-sec{width:100%;padding:11px;background:#fff;color:var(--pk-dark);border:1.5px solid var(--pink);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px;}
 .btn-danger{width:100%;padding:11px;background:#fff;color:var(--red);border:1.5px solid var(--red);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px;}
@@ -168,7 +168,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 <div class="hdr">
   <div class="hdr-top">
     <div>
-      <h1 id="tripTitle">🌸 伶的旅遊帳本</h1>
+      <h1 id="tripTitle">🌿 伶的旅遊帳本</h1>
       <div class="sub" id="tripSub">載入中…</div>
     </div>
     <div class="hdr-btns">
@@ -176,6 +176,8 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
         <span class="update-dot" id="updateDot"></span>
         🔄 更新
       </button>
+      <button class="hdr-btn" onclick="exportExcel()">📊 匯出</button>
+      <button class="hdr-btn" id="importBtn" onclick="importMyExpenses()">📥 匯入</button>
       <button class="hdr-btn" onclick="openOv('rateOv')">💱 匯率</button>
     </div>
   </div>
@@ -298,8 +300,7 @@ const MY_NAME='伶';
 const SHARED_DOC='main';
 const PERSONAL_DOC='personal_ling';
 
-// Chart colors
-const CAT_COLORS=['#f97316','#eab308','#22c55e','#06b6d4','#6366f1','#ec4899','#14b8a6','#f43f5e','#8b5cf6','#64748b'];
+
 
 let db=null,_doc=null,_setDoc=null,_onSnapshot=null;
 let sharedData={title:'',startDate:'',currency:'JPY',members:[],days:[],expenses:[]};
@@ -363,6 +364,7 @@ async function initFirebase(){
         document.getElementById('rateInp').value=personalData.rate||0.22;
       }
       showLoading(false);
+      checkImportBtn();
       // if no snapshottedShared yet, auto-import on first load
       if(!snapshottedShared&&latestShared){
         snapshottedShared=JSON.parse(JSON.stringify(latestShared));
@@ -466,7 +468,7 @@ function confirmImport(){
 
 /* ── header / summary ── */
 function updateHeader(){
-  document.getElementById('tripTitle').textContent='🌸 '+(sharedData.title||'伶的旅遊帳本');
+  document.getElementById('tripTitle').textContent='🌿 '+(sharedData.title||'伶的旅遊帳本');
   const sub=sharedData.days&&sharedData.days.length
     ?sharedData.days.map((d,i)=>'Day'+(i+1)+(d.date?' '+d.date:'')).slice(0,3).join('・')+(sharedData.days.length>3?'…':'')
     :'個人記帳頁面';
@@ -516,7 +518,7 @@ function switchTab(tab,el){
 function renderTab(){
   const c=document.getElementById('tabContent');
   if(activeTab==='expenses') c.innerHTML=renderExpenses();
-  else if(activeTab==='chart'){c.innerHTML=renderChartHTML();drawChart();}
+  else if(activeTab==='chart'){_selCat=null;_hovCat=null;c.innerHTML=renderChartHTML();drawChart();}
   else if(activeTab==='log'){c.innerHTML=renderLog();loadLog();}
   else c.innerHTML=renderSettle();
 }
@@ -609,109 +611,164 @@ function renderSharedItem(e){
 
 function renderPersonalItem(e){
   const cat=CATS[e.cat]||CATS[9];
+  const pending=!e.amount;
   const amtView=toView(e.amount||0,e.currency||sharedCur());
   const pIdx=e._pIdx;
-  return`<div class="exp-item personal clickable" onclick="openAddExp(${pIdx})">
+  return`<div class="exp-item personal clickable${pending?' pending':''}" onclick="openAddExp(${pIdx})">
     <div class="exp-icon">${cat.e}</div>
     <div class="exp-info">
       <div class="exp-name">${e.name}</div>
       <div class="exp-meta">
         <span class="personal-tag">🔒 私人</span>
         <span>${cat.n}</span>
-        ${e.currency&&e.currency!==viewCur?`<span>${Math.round(e.amount||0).toLocaleString()} ${e.currency}</span>`:''}
+        ${!pending&&e.currency&&e.currency!==viewCur?`<span>${Math.round(e.amount||0).toLocaleString()} ${e.currency}</span>`:''}
         ${e.note?`<span>📝 ${e.note}</span>`:''}
       </div>
+      ${pending?`<div class="pending-chip">⏳ 待填金額</div>`:''}
     </div>
     <div class="exp-right">
-      <div class="exp-amt">${fmt(amtView)}</div>
-      <div class="exp-sub">${viewCur}</div>
+      <div class="exp-amt" style="${pending?'color:var(--orange)':''}">${pending?'—':fmt(amtView)}</div>
+      <div class="exp-sub">${pending?'待填':viewCur}</div>
     </div>
     <span class="edit-hint">✏️</span>
   </div>`;
 }
 
 /* ── chart tab ── */
+const CAT_COLORS_PIE=['#b5c4b1','#a8bcc8','#c4b5a8','#b8a8c4','#a8c4bc','#c4a8b0','#b0c4a8','#c4bca8','#a8b0c4','#beb8b0'];
+let _selCat=null;
+let _hovCat=null;
+
 function renderChartHTML(){
-  return`<div class="chart-wrap">
+  return`<div class="chart-wrap" id="chartWrap">
     <div class="chart-title">各類別花費</div>
-    <canvas id="pieCanvas" width="240" height="240"></canvas>
+    <div style="position:relative;display:flex;justify-content:center;">
+      <svg id="pieSvg" width="260" height="260" style="overflow:visible;cursor:pointer;"></svg>
+    </div>
     <div class="cat-legend" id="catLegend"></div>
+    <div id="catDetail" style="margin-top:12px;"></div>
   </div>`;
 }
 
-function drawChart(){
+function getChartData(){
   const catTotals={};
-  CATS.forEach((_,i)=>catTotals[i]=0);
-
-  // shared my share
+  const catItems={};
+  CATS.forEach((_,i)=>{catTotals[i]=0;catItems[i]=[];});
   getMySharedItems().forEach(e=>{
     if(e._myShare>0){
       const v=toView(e._myShare,sharedCur());
-      catTotals[e.cat!=null?e.cat:9]=(catTotals[e.cat!=null?e.cat:9]||0)+v;
+      const ci=e.cat!=null?e.cat:9;
+      catTotals[ci]+=v;
+      catItems[ci].push({name:e.name,amount:e._myShare,currency:sharedCur(),orig:e.amount,note:'共用分攤'});
     }
   });
-
-  // personal
   (personalData.expenses||[]).forEach(e=>{
     const v=toView(e.amount||0,e.currency||sharedCur());
-    catTotals[e.cat!=null?e.cat:9]=(catTotals[e.cat!=null?e.cat:9]||0)+v;
+    const ci=e.cat!=null?e.cat:9;
+    catTotals[ci]+=v;
+    if(e.amount>0) catItems[ci].push({name:e.name,amount:e.amount,currency:e.currency||sharedCur(),note:'私人'});
   });
-
   const total=Object.values(catTotals).reduce((s,v)=>s+v,0);
-  if(!total){
-    document.getElementById('catLegend').innerHTML='<div style="color:var(--muted);font-size:13px;grid-column:span 2;text-align:center;padding:20px 0;">還沒有花費資料</div>';
-    return;
-  }
-
-  const data=CATS.map((c,i)=>({label:c.e+c.n,value:catTotals[i]||0,color:CAT_COLORS[i],idx:i})).filter(d=>d.value>0).sort((a,b)=>b.value-a.value);
-
-  // draw pie
-  const canvas=document.getElementById('pieCanvas');
-  if(!canvas)return;
-  const ctx=canvas.getContext('2d');
-  const cx=120,cy=120,r=100,ir=52;
-  ctx.clearRect(0,0,240,240);
-
-  let startAngle=-Math.PI/2;
-  data.forEach(d=>{
-    const angle=2*Math.PI*d.value/total;
-    ctx.beginPath();
-    ctx.moveTo(cx,cy);
-    ctx.arc(cx,cy,r,startAngle,startAngle+angle);
-    ctx.closePath();
-    ctx.fillStyle=d.color;
-    ctx.fill();
-    // inner hole
-    ctx.beginPath();
-    ctx.arc(cx,cy,ir,0,2*Math.PI);
-    ctx.fillStyle='#fff';
-    ctx.fill();
-    startAngle+=angle;
-  });
-
-  // center text
-  ctx.fillStyle=VAR('--pk-dark')||'#be185d';
-  ctx.font='bold 14px -apple-system,PingFang TC,sans-serif';
-  ctx.textAlign='center';
-  ctx.fillText(viewCur,cx,cy-4);
-  ctx.font='bold 16px -apple-system,PingFang TC,sans-serif';
-  ctx.fillText(fmt(total),cx,cy+16);
-
-  // legend
-  const leg=document.getElementById('catLegend');
-  if(leg){
-    leg.innerHTML=data.map(d=>`
-      <div class="cat-leg-item">
-        <div class="cat-leg-dot" style="background:${d.color}"></div>
-        <div class="cat-leg-name">${d.label}</div>
-        <div class="cat-leg-amt">${fmt(d.value)}<span class="cat-leg-pct">${Math.round(d.value/total*100)}%</span></div>
-      </div>
-    `).join('');
-  }
+  const data=CATS.map((c,i)=>({...c,i,total:catTotals[i],items:catItems[i]})).filter(d=>d.total>0).sort((a,b)=>b.total-a.total);
+  return{data,total};
 }
 
-function VAR(name){
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+function drawChart(){
+  const svg=document.getElementById('pieSvg');
+  if(!svg)return;
+  const{data,total}=getChartData();
+  if(!total){svg.innerHTML='<text x="130" y="130" text-anchor="middle" fill="#7a8e9a" font-size="13">還沒有花費資料</text>';return;}
+  const CX=130,CY=130,R=110,IR=58;
+  let startAngle=-Math.PI/2;
+  let segs=[];
+  data.forEach(d=>{
+    const angle=2*Math.PI*d.total/total;
+    const endAngle=startAngle+angle;
+    const isSel=_selCat===d.i;
+    const isHov=_hovCat===d.i;
+    const expand=(isSel||isHov)?7:0;
+    const mid=startAngle+angle/2;
+    const ox=Math.cos(mid)*expand,oy=Math.sin(mid)*expand;
+    const x1=CX+ox+R*Math.cos(startAngle),y1=CY+oy+R*Math.sin(startAngle);
+    const x2=CX+ox+R*Math.cos(endAngle),y2=CY+oy+R*Math.sin(endAngle);
+    const ix1=CX+ox+IR*Math.cos(startAngle),iy1=CY+oy+IR*Math.sin(startAngle);
+    const ix2=CX+ox+IR*Math.cos(endAngle),iy2=CY+oy+IR*Math.sin(endAngle);
+    const large=angle>Math.PI?1:0;
+    const path=`M${ix1} ${iy1} L${x1} ${y1} A${R} ${R} 0 ${large} 1 ${x2} ${y2} L${ix2} ${iy2} A${IR} ${IR} 0 ${large} 0 ${ix1} ${iy1}Z`;
+    segs.push({d,path,ox,oy,isSel,isHov,mid});
+    startAngle=endAngle;
+  });
+  // render
+  const dim=_selCat!==null;
+  let inner=segs.map(s=>`<path d="${s.path}" fill="${CAT_COLORS_PIE[s.d.i]}" stroke="#fff" stroke-width="${s.isSel||s.isHov?2.5:1.5}" opacity="${dim&&!s.isSel?0.32:1}" data-ci="${s.d.i}" style="transition:opacity .2s;cursor:pointer;"/>`).join('');
+  // center circle
+  inner+=`<circle cx="${CX}" cy="${CY}" r="${IR-2}" fill="#fff"/>`;
+  // center text
+  const active=data.find(d=>d.i===(_hovCat??_selCat));
+  if(active){
+    inner+=`<text x="${CX}" y="${CY-12}" text-anchor="middle" font-size="22">${active.e}</text>`;
+    inner+=`<text x="${CX}" y="${CY+8}" text-anchor="middle" font-size="13" font-weight="700" fill="#2c3e4a">${fmt(active.total)}</text>`;
+    inner+=`<text x="${CX}" y="${CY+22}" text-anchor="middle" font-size="10" fill="#7a8e9a">${viewCur}</text>`;
+  } else {
+    inner+=`<text x="${CX}" y="${CY-4}" text-anchor="middle" font-size="14" font-weight="700" fill="#4a6f8a">${fmt(total)}</text>`;
+    inner+=`<text x="${CX}" y="${CY+14}" text-anchor="middle" font-size="10" fill="#7a8e9a">${viewCur} 總計</text>`;
+  }
+  svg.innerHTML=inner;
+  // events
+  svg.querySelectorAll('path[data-ci]').forEach(el=>{
+    const ci=parseInt(el.dataset.ci);
+    el.addEventListener('mouseenter',()=>{_hovCat=ci;drawChart();});
+    el.addEventListener('mouseleave',()=>{_hovCat=null;drawChart();});
+    el.addEventListener('click',()=>{_selCat=_selCat===ci?null:ci;drawChart();renderLegend(data,total);renderDetail(data);});
+  });
+  renderLegend(data,total);
+  renderDetail(data);
+}
+
+function renderLegend(data,total){
+  const leg=document.getElementById('catLegend');
+  if(!leg)return;
+  leg.innerHTML=data.map(d=>{
+    const isSel=_selCat===d.i;
+    return`<div onclick="toggleCat(${d.i})" style="display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:8px;cursor:pointer;background:${isSel?'#e8f0f7':'transparent'};border:1px solid ${isSel?'#a8bcc8':'transparent'};opacity:${_selCat!==null&&!isSel?0.4:1};transition:all .15s;">
+      <div style="width:10px;height:10px;border-radius:3px;background:${CAT_COLORS_PIE[d.i]};flex-shrink:0;"></div>
+      <div style="font-size:12px;flex:1;">${d.e}${d.n}</div>
+      <div style="font-size:12px;font-weight:700;color:#4a6f8a;">${fmt(d.total)}<span style="font-size:10px;color:#7a8e9a;font-weight:400;margin-left:3px;">${Math.round(d.total/total*100)}%</span></div>
+    </div>`;
+  }).join('');
+}
+
+function renderDetail(data){
+  const el=document.getElementById('catDetail');
+  if(!el)return;
+  if(_selCat===null){el.innerHTML='';return;}
+  const d=data.find(x=>x.i===_selCat);
+  if(!d){el.innerHTML='';return;}
+  const{total}=getChartData();
+  el.innerHTML=`<div style="background:#fff;border-radius:14px;padding:14px 16px;border:1.5px solid ${CAT_COLORS_PIE[d.i]};box-shadow:0 2px 12px rgba(74,111,138,0.10);">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+      <div style="width:36px;height:36px;border-radius:10px;background:${CAT_COLORS_PIE[d.i]}33;display:flex;align-items:center;justify-content:center;font-size:18px;">${d.e}</div>
+      <div>
+        <div style="font-size:14px;font-weight:700;">${d.n}</div>
+        <div style="font-size:11px;color:#7a8e9a;">共 ${d.items.length} 筆 · ${fmt(d.total)} ${viewCur} · ${Math.round(d.total/total*100)}%</div>
+      </div>
+      <button onclick="_selCat=null;drawChart();" style="margin-left:auto;background:none;border:none;font-size:18px;cursor:pointer;color:#7a8e9a;">✕</button>
+    </div>
+    ${d.items.map((item,idx)=>`
+      <div style="display:flex;align-items:center;padding:8px 0;border-top:${idx>0?'1px solid #e8f0f7':'none'};">
+        <div style="flex:1;font-size:13px;">${item.name}${item.note?`<span style="font-size:10px;color:#7a8e9a;margin-left:5px;">${item.note}</span>`:''}</div>
+        <div style="font-size:13px;font-weight:600;color:#4a6f8a;">${fmt(item.amount)} ${item.currency}</div>
+        ${item.currency!==viewCur?`<div style="font-size:10px;color:#7a8e9a;margin-left:5px;">≈${fmt(toView(item.amount,item.currency))} ${viewCur}</div>`:''}
+      </div>`).join('')}
+    <div style="margin-top:10px;padding-top:10px;border-top:1.5px dashed #d0dde8;display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:#4a6f8a;">
+      <span>小計</span><span>${fmt(d.total)} ${viewCur}</span>
+    </div>
+  </div>`;
+}
+
+function toggleCat(ci){
+  _selCat=_selCat===ci?null:ci;
+  drawChart();
 }
 
 /* ── settle tab ── */
@@ -863,7 +920,7 @@ function savePersonalExp(){
 
   if(!name){alert('請填寫名稱');return;}
 
-  const entry={name,amount:amt,currency,note,cat:selCat,dayIndex};
+  const entry={name,amount:amt||0,currency,note,cat:selCat,dayIndex};
   if(!personalData.expenses) personalData.expenses=[];
 
   if(editIdx>=0) personalData.expenses[editIdx]=entry;
@@ -942,6 +999,76 @@ function renderLog(){
   }).join('');
 }
 
+/* ── export excel ── */
+function exportExcel(){
+  const personalExps=personalData.expenses||[];
+  const sharedItems=getMySharedItems();
+  if(!personalExps.length&&!sharedItems.length){alert('還沒有任何記帳資料');return;}
+  const wb=XLSX.utils.book_new();
+  const rate=getRate();
+  const hdrStyle={font:{bold:true},fill:{fgColor:{rgb:'E879A0'}},alignment:{horizontal:'center'}};
+
+  // ── Sheet 1: 私人花費 ──
+  const pRows=[['日期','名稱','類別','原始金額','幣別','換算'+viewCur,'備註','狀態']];
+  personalExps.forEach(e=>{
+    const cat=CATS[e.cat]||CATS[9];
+    const day=e.dayIndex!=null?(()=>{const d=(sharedData.days||[])[e.dayIndex]||{};return`Day${e.dayIndex+1}${d.date?' '+d.date:''}${d.title?' '+d.title:''}`;})():'未指定';
+    const amtView=Math.round(toView(e.amount||0,e.currency||sharedCur()));
+    pRows.push([day,e.name,cat.e+cat.n,e.amount||'',e.currency||sharedCur(),amtView||'',e.note||'',e.amount?'✓':'⏳ 待填']);
+  });
+  const ws1=XLSX.utils.aoa_to_sheet(pRows);
+  ws1['!cols']=[{wch:18},{wch:16},{wch:10},{wch:10},{wch:6},{wch:10},{wch:14},{wch:8}];
+  'ABCDEFGH'.split('').forEach(c=>{if(ws1[c+'1'])ws1[c+'1'].s=hdrStyle;});
+  XLSX.utils.book_append_sheet(wb,ws1,'私人花費');
+
+  // ── Sheet 2: 共用分攤（我的份）──
+  const sRows=[['日期','名稱','類別','總金額','我的份額','幣別','換算'+viewCur,'付款人','狀態']];
+  sharedItems.forEach(e=>{
+    const cat=CATS[e.cat]||CATS[9];
+    const day=e.dayIndex!=null?(()=>{const d=(sharedData.days||[])[e.dayIndex]||{};return`Day${e.dayIndex+1}${d.date?' '+d.date:''}`;})():'未指定';
+    const shareView=Math.round(toView(e._myShare||0,sharedCur()));
+    sRows.push([day,e.name,cat.e+cat.n,e.amount?Math.round(e.amount):'',e._myShare?Math.round(e._myShare):'',sharedCur(),shareView||'',e.payer||'',e.amount?'✓':'⏳ 待填']);
+  });
+  const ws2=XLSX.utils.aoa_to_sheet(sRows);
+  ws2['!cols']=[{wch:18},{wch:16},{wch:10},{wch:10},{wch:10},{wch:6},{wch:10},{wch:8},{wch:8}];
+  'ABCDEFGHI'.split('').forEach(c=>{if(ws2[c+'1'])ws2[c+'1'].s=hdrStyle;});
+  XLSX.utils.book_append_sheet(wb,ws2,'共用分攤');
+
+  // ── Sheet 3: 類別匯總 ──
+  const catTotals={};
+  CATS.forEach((_,i)=>catTotals[i]=0);
+  sharedItems.forEach(e=>{if(e._myShare>0)catTotals[e.cat!=null?e.cat:9]+=toView(e._myShare,sharedCur());});
+  personalExps.forEach(e=>{catTotals[e.cat!=null?e.cat:9]+=toView(e.amount||0,e.currency||sharedCur());});
+  const total=Object.values(catTotals).reduce((s,v)=>s+v,0);
+  const cRows=[['類別','金額('+viewCur+')','佔比']];
+  CATS.map((c,i)=>({c,i,v:catTotals[i]})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v)
+    .forEach(x=>cRows.push([x.c.e+x.c.n,Math.round(x.v),total>0?Math.round(x.v/total*100)+'%':'0%']));
+  cRows.push(['合計',Math.round(total),'100%']);
+  const ws3=XLSX.utils.aoa_to_sheet(cRows);
+  ws3['!cols']=[{wch:12},{wch:12},{wch:8}];
+  'ABC'.split('').forEach(c=>{if(ws3[c+'1'])ws3[c+'1'].s=hdrStyle;});
+  XLSX.utils.book_append_sheet(wb,ws3,'類別匯總');
+
+  // ── Sheet 4: 結算 ──
+  const bal=calcSharedBal();
+  const txns=calcSettlements(bal);
+  const mine=txns.filter(t=>t.from===MY_NAME||t.to===MY_NAME);
+  const rRows=[['方向','對象','金額('+sharedCur()+')','換算'+viewCur]];
+  if(!mine.length) rRows.push(['已結清','—','—','—']);
+  mine.forEach(t=>{
+    const dir=t.from===MY_NAME?'我還給':'對方還我';
+    const other=t.from===MY_NAME?t.to:t.from;
+    rRows.push([dir,other,Math.round(t.amount),Math.round(toView(t.amount,sharedCur()))]);
+  });
+  const ws4=XLSX.utils.aoa_to_sheet(rRows);
+  ws4['!cols']=[{wch:10},{wch:10},{wch:12},{wch:12}];
+  'ABCD'.split('').forEach(c=>{if(ws4[c+'1'])ws4[c+'1'].s=hdrStyle;});
+  XLSX.utils.book_append_sheet(wb,ws4,'結算');
+
+  const fname='伶的旅遊帳本_'+new Date().toISOString().slice(0,10)+'.xlsx';
+  XLSX.writeFile(wb,fname);
+}
+
 /* ── helpers ── */
 function empty(ico,msg){return`<div class="empty"><div class="ico">${ico}</div><p>${msg}</p></div>`;}
 function openOv(id){
@@ -953,7 +1080,73 @@ document.querySelectorAll('.ov').forEach(o=>{
   o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});
 });
 
+/* ── import my expense data ── */
+async function importMyExpenses(){
+  if(personalData._imported){alert('已經匯入過了！');return;}
+  if(!confirm('確定要匯入你的消費明細嗎？這會新增到現有資料上。')) return;
+  const data=[
+    // Day1
+    {name:'Skyliner',amount:508,currency:'TWD',cat:4,dayIndex:0,note:''},
+    // Day2
+    {name:'龍貓商店',amount:5378,currency:'TWD',cat:7,dayIndex:1,note:'¥5720'},
+    {name:'草莓起司布雪',amount:360,currency:'JPY',cat:3,dayIndex:1,note:''},
+    {name:'蘋果卡士達派',amount:500,currency:'JPY',cat:3,dayIndex:1,note:''},
+    {name:'Coach',amount:27273,currency:'JPY',cat:7,dayIndex:1,note:'≈TWD 5378'},
+    {name:'公車去教堂',amount:420,currency:'JPY',cat:4,dayIndex:1,note:''},
+    {name:'Non Okawa 巧克力烘乾吐司餅乾',amount:648,currency:'JPY',cat:3,dayIndex:1,note:''},
+    // Day3
+    {name:'UNIQLO 網球裙*2',amount:5437,currency:'JPY',cat:7,dayIndex:2,note:'川越'},
+    {name:'相印機耗材',amount:0,currency:'JPY',cat:7,dayIndex:2,note:'川越'},
+    {name:'超市買晚餐',amount:6719,currency:'JPY',cat:6,dayIndex:2,note:'川越'},
+    {name:'全家蔬菜湯雞肉串晚餐',amount:1494,currency:'JPY',cat:2,dayIndex:2,note:'川越'},
+    {name:'幫🐟買鹽昆布',amount:0,currency:'JPY',cat:6,dayIndex:2,note:'待確認金額'},
+    // Day4
+    {name:'文具們',amount:0,currency:'JPY',cat:9,dayIndex:3,note:'Disneyland'},
+    {name:'漢堡午餐',amount:0,currency:'JPY',cat:1,dayIndex:3,note:'Disneyland'},
+    // Day5
+    {name:'八天堂',amount:320,currency:'JPY',cat:3,dayIndex:4,note:'購物day'},
+    {name:'3coin 口罩',amount:330,currency:'JPY',cat:7,dayIndex:4,note:''},
+    {name:'豆富食堂',amount:2420,currency:'JPY',cat:2,dayIndex:4,note:'午餐'},
+    {name:'Daiso',amount:4730,currency:'JPY',cat:7,dayIndex:4,note:'購物day'},
+    {name:'Donki',amount:5424,currency:'JPY',cat:7,dayIndex:4,note:'購物day'},
+    {name:'Cando',amount:2090,currency:'JPY',cat:7,dayIndex:4,note:'1870+220'},
+    {name:'Daiso 2',amount:1980,currency:'JPY',cat:7,dayIndex:4,note:''},
+    {name:'欠吳岳高',amount:3900,currency:'JPY',cat:8,dayIndex:4,note:''},
+    {name:'Lawson 排少餅乾卡',amount:171,currency:'JPY',cat:3,dayIndex:4,note:''},
+    {name:'鬍子爸爸 玉露抹茶',amount:0,currency:'JPY',cat:3,dayIndex:4,note:'待填金額'},
+    {name:'Loft 網球貼紙',amount:253,currency:'JPY',cat:7,dayIndex:4,note:''},
+    {name:'幫健買超市甜點',amount:753,currency:'JPY',cat:6,dayIndex:4,note:''},
+    {name:'家旁邊超市',amount:1980,currency:'JPY',cat:6,dayIndex:4,note:''},
+    {name:'水',amount:141,currency:'JPY',cat:6,dayIndex:4,note:''},
+    // Day6
+    {name:'Lawson 排少餅乾卡',amount:171,currency:'JPY',cat:3,dayIndex:5,note:''},
+    {name:'Donki',amount:3616,currency:'JPY',cat:7,dayIndex:5,note:''},
+    {name:'姐姐的巧克力薯片',amount:205,currency:'JPY',cat:3,dayIndex:5,note:''},
+    {name:'扭蛋 SKZOO',amount:400,currency:'JPY',cat:7,dayIndex:5,note:''},
+    {name:'鴨to蔥',amount:1410,currency:'JPY',cat:2,dayIndex:5,note:'1260+150現金'},
+    {name:'師傅&烏薩琪扭蛋',amount:1000,currency:'JPY',cat:7,dayIndex:5,note:'¥500*2'},
+    {name:'富岡義勇扭蛋',amount:1600,currency:'JPY',cat:7,dayIndex:5,note:'¥400*4'},
+    {name:'猗窩座扭蛋',amount:500,currency:'JPY',cat:7,dayIndex:5,note:''},
+    {name:'日暮里卡士達千層酥',amount:420,currency:'JPY',cat:3,dayIndex:5,note:''},
+    {name:'機場蕎麥茶',amount:180,currency:'JPY',cat:3,dayIndex:5,note:''},
+  ];
+  if(!personalData.expenses) personalData.expenses=[];
+  personalData.expenses=[...personalData.expenses,...data];
+  await savePersonal();
+  updateSummary();renderTab();
+  personalData._imported=true;
+  await savePersonal();
+  const btn=document.getElementById('importBtn');
+  if(btn)btn.style.display='none';
+  alert('✅ 匯入完成！共 '+data.length+' 筆\n這個按鈕已自動隱藏，不會重複匯入。');
+}
+
 /* ── init ── */
+// hide import btn if already imported (checked after firebase loads)
+function checkImportBtn(){
+  const btn=document.getElementById('importBtn');
+  if(btn) btn.style.display=personalData._imported?'none':'';
+}
 initFirebase();
 </script>
 </body>
