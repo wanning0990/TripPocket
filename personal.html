@@ -1152,14 +1152,7 @@ document.querySelectorAll('.ov').forEach(o=>{
   o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});
 });
 
-  if(!personalData.expenses) personalData.expenses=[];
-  personalData.expenses=[...personalData.expenses,...data];
-  personalData._suicaImported=true;
-  await savePersonal();
-  updateSummary();renderTab();
-  alert('✅ 匯入完成！共 '+data.length+' 筆，並補填了文具們與漢堡午餐的金額');
-  document.getElementById('suicaImportBtn').style.display='none';
-}
+
 
 /* ── init ── */
 initFirebase();
