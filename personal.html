@@ -105,11 +105,13 @@ canvas{display:block;margin:0 auto;}
 /* sub items */
 .sub-items-wrap{margin-top:10px;border-top:1.5px dashed var(--border);padding-top:10px;}
 .sub-item-row{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
-.sub-item-name{flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-family:inherit;background:var(--bg);color:var(--text);outline:none;}
+.sub-item-top{display:none;}
+.sub-item-bottom{display:none;}
+.sub-item-name{flex:2;min-width:0;padding:8px 10px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-family:inherit;background:var(--bg);color:var(--text);outline:none;}
 .sub-item-name:focus{border-color:var(--pink);}
-.sub-item-amt{width:90px;padding:8px 10px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-family:inherit;background:var(--bg);color:var(--text);outline:none;text-align:right;}
+.sub-item-amt{flex:1;min-width:0;padding:8px 10px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-family:inherit;background:var(--bg);color:var(--text);outline:none;text-align:right;}
 .sub-item-amt:focus{border-color:var(--pink);}
-.sub-item-conv{font-size:11px;color:var(--muted);white-space:nowrap;min-width:56px;text-align:right;}
+.sub-item-conv{font-size:11px;color:var(--muted);white-space:nowrap;flex-shrink:0;min-width:48px;text-align:right;}
 .sub-item-del{background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;padding:2px;opacity:0.5;flex-shrink:0;}
 .sub-item-del:hover{opacity:1;}
 .sub-add-btn{background:var(--bg);border:1.5px dashed var(--border);color:var(--muted);border-radius:9px;padding:7px;font-size:13px;cursor:pointer;font-family:inherit;width:100%;margin-top:2px;transition:all .15s;}
@@ -705,7 +707,7 @@ function toggleSubDetail(id){
 }
 
 /* ── chart tab ── */
-const CAT_COLORS_PIE=['#b5c4b1','#a8bcc8','#c4b5a8','#b8a8c4','#a8c4bc','#c4a8b0','#b0c4a8','#c4bca8','#a8b0c4','#beb8b0'];
+const CAT_COLORS_PIE=['#c8f0c8','#fdf0a0','#ffd6a0','#ffb3b3','#b8e0ff','#ffc8e8','#d4f0b8','#ffe0b8','#d8c8f8','#ffd8c0'];
 let _selCat=null;
 let _hovCat=null;
 
@@ -1104,8 +1106,8 @@ function createSubRow(idx,name,amount){
   row.innerHTML=`
     <input class="sub-item-name" type="text" placeholder="品項名稱" value="${name}" oninput="updateSubTotal()">
     <input class="sub-item-amt" type="number" placeholder="0" value="${amount||''}" inputmode="decimal" oninput="updateSubTotal()">
-    <span class="sub-item-conv" id="subconv_${idx}">${convHtml}</span>
-    <button class="sub-item-del" onclick="this.parentElement.remove();updateSubTotal()">×</button>`;
+    <span class="sub-item-conv">${convHtml}</span>
+    <button class="sub-item-del" onclick="this.closest('.sub-item-row').remove();updateSubTotal()">×</button>`;
   return row;
 }
 
@@ -1116,8 +1118,8 @@ function updateSubTotal(){
   rows.forEach((row,i)=>{
     const a=parseFloat(row.querySelector('.sub-item-amt').value)||0;
     total+=a;
-    const conv=row.querySelector('[id^="subconv_"]');
-    if(conv) conv.textContent=viewCur!==cur&&a?`≈${Math.round(toView(a,cur)).toLocaleString()} ${viewCur}`:'';
+    const conv=row.querySelector('.sub-item-conv');
+    if(conv) conv.textContent=viewCur!==cur&&a?`≈${Math.round(toView(a,cur)).toLocaleString()}`:'';
   });
   const totEl=document.getElementById('subItemsTotal');
   if(rows.length>0&&total>0){
