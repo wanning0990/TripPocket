@@ -102,6 +102,26 @@ body{font-family:-apple-system,'PingFang TC','Noto Sans TC',sans-serif;backgroun
 .chart-title{font-size:14px;font-weight:700;margin-bottom:14px;color:var(--text);}
 canvas{display:block;margin:0 auto;}
 
+/* sub items */
+.sub-items-wrap{margin-top:10px;border-top:1.5px dashed var(--border);padding-top:10px;}
+.sub-item-row{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
+.sub-item-name{flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-family:inherit;background:var(--bg);color:var(--text);outline:none;}
+.sub-item-name:focus{border-color:var(--pink);}
+.sub-item-amt{width:90px;padding:8px 10px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-family:inherit;background:var(--bg);color:var(--text);outline:none;text-align:right;}
+.sub-item-amt:focus{border-color:var(--pink);}
+.sub-item-conv{font-size:11px;color:var(--muted);white-space:nowrap;min-width:56px;text-align:right;}
+.sub-item-del{background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;padding:2px;opacity:0.5;flex-shrink:0;}
+.sub-item-del:hover{opacity:1;}
+.sub-add-btn{background:var(--bg);border:1.5px dashed var(--border);color:var(--muted);border-radius:9px;padding:7px;font-size:13px;cursor:pointer;font-family:inherit;width:100%;margin-top:2px;transition:all .15s;}
+.sub-add-btn:hover{border-color:var(--pink);color:var(--pk-dark);}
+.sub-toggle-btn{display:flex;align-items:center;gap:5px;background:none;border:none;color:#4a6f8a;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;padding:4px 0;margin-top:4px;}
+.sub-detail{margin-top:6px;padding:8px 10px;background:#f8fbfd;border-radius:10px;border:1px solid var(--border);}
+.sub-detail-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-bottom:1px solid #eef3f7;}
+.sub-detail-row:last-child{border-bottom:none;}
+.sub-detail-name{color:var(--text);flex:1;}
+.sub-detail-amt{font-weight:600;color:#4a6f8a;text-align:right;}
+.sub-detail-conv{font-size:10px;color:var(--muted);margin-left:6px;}
+
 /* calc buttons */
 .calc-btns{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
 .calc-btn{padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);background:var(--card);color:#4a6f8a;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;min-width:44px;text-align:center;}
@@ -275,6 +295,17 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     <div class="fg">
       <label>備註</label>
       <textarea id="expNote" placeholder="選填"></textarea>
+    </div>
+    <div class="fg">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <label style="margin-bottom:0;">細項明細 <span style="font-size:10px;color:var(--muted);font-weight:400;">選填，可展開記各品項單價</span></label>
+        <button class="sub-toggle-btn" id="subToggleBtn" onclick="toggleSubItems()">＋ 展開細項</button>
+      </div>
+      <div id="subItemsWrap" style="display:none;">
+        <div id="subItemsList"></div>
+        <button class="sub-add-btn" onclick="addSubItemRow()">＋ 新增品項</button>
+        <div id="subItemsTotal" style="font-size:12px;color:#4a6f8a;font-weight:600;margin-top:8px;text-align:right;display:none;"></div>
+      </div>
     </div>
     <button class="btn-p" id="expSaveBtn" onclick="savePersonalExp()">新增</button>
     <button class="btn-danger" id="expDelBtn" onclick="delPersonalExp()" style="display:none">🗑 刪除此筆</button>
@@ -633,6 +664,20 @@ function renderPersonalItem(e){
   const pIdx=e._pIdx;
   const hasDiffCur=!pending&&e.currency&&e.currency!==viewCur;
   const origLine=hasDiffCur?`<div style="font-size:10px;color:#7a8e9a;margin-top:1px;">${Math.round(Math.abs(e.amount)).toLocaleString()} ${e.currency}</div>`:'';
+  const hasSub=e.subItems&&e.subItems.length>0;
+  const subId=`sub_p_${pIdx}`;
+  const subDetail=hasSub?`
+    <button class="sub-toggle-btn" onclick="event.stopPropagation();toggleSubDetail('${subId}')">📋 ${e.subItems.length} 個細項</button>
+    <div id="${subId}" class="sub-detail" style="display:none;">
+      ${e.subItems.map(s=>{
+        const sv=toView(s.amount||0,e.currency||sharedCur());
+        const conv=e.currency!==viewCur?`<span class="sub-detail-conv">≈${fmt(sv)} ${viewCur}</span>`:'';
+        return`<div class="sub-detail-row">
+          <span class="sub-detail-name">${s.name||'—'}</span>
+          <span class="sub-detail-amt">${fmt(s.amount||0)} ${e.currency}${conv}</span>
+        </div>`;
+      }).join('')}
+    </div>`:'';
   return`<div class="exp-item personal clickable${pending?' pending':''}" onclick="openAddExp(${pIdx})">
     <div class="exp-icon">${cat.e}</div>
     <div class="exp-info">
@@ -643,14 +688,20 @@ function renderPersonalItem(e){
         ${e.note?`<span>📝 ${e.note}</span>`:''}
       </div>
       ${pending?`<div class="pending-chip">⏳ 待填金額</div>`:''}
+      ${subDetail}
     </div>
     <div class="exp-edit-pill">✏️</div>
     <div class="exp-right">
-      <div class="exp-amt" style="${pending?'color:var(--orange)':e.amount<0?'color:var(--green)':''}">${pending?'—':(e.amount<0?'':'')+fmt(amtView)}</div>
+      <div class="exp-amt" style="${pending?'color:var(--orange)':e.amount<0?'color:var(--green)':''}">${pending?'—':fmt(amtView)}</div>
       <div class="exp-sub">${pending?'待填':viewCur}</div>
       ${origLine}
     </div>
   </div>`;
+}
+
+function toggleSubDetail(id){
+  const el=document.getElementById(id);
+  if(el) el.style.display=el.style.display==='none'?'':'none';
 }
 
 /* ── chart tab ── */
@@ -681,12 +732,12 @@ function getChartData(){
       catItems[ci].push({name:e.name,amount:e._myShare,currency:sharedCur(),orig:e.amount,note:'共用分攤'});
     }
   });
-  (personalData.expenses||[]).forEach(e=>{
+  (personalData.expenses||[]).forEach((e,pIdx)=>{
     if(!e.amount) return;
     const v=toView(e.amount,e.currency||sharedCur());
     const ci=e.cat!=null?e.cat:9;
     catTotals[ci]=(catTotals[ci]||0)+v;
-    catItems[ci].push({name:e.name,amount:e.amount,currency:e.currency||sharedCur(),note:e.amount<0?'私人（沖帳）':'私人'});
+    catItems[ci].push({name:e.name,amount:e.amount,currency:e.currency||sharedCur(),note:e.amount<0?'私人（沖帳）':'私人',pIdx,subItems:e.subItems||[]});
   });
   const total=Object.values(catTotals).reduce((s,v)=>s+v,0);
   const data=CATS.map((c,i)=>({...c,i,total:catTotals[i]||0,items:catItems[i]})).filter(d=>d.items.length>0).sort((a,b)=>b.total-a.total);
@@ -774,17 +825,37 @@ function renderDetail(data){
       </div>
       <button onclick="_selCat=null;drawChart();" style="margin-left:auto;background:none;border:none;font-size:18px;cursor:pointer;color:#7a8e9a;">✕</button>
     </div>
-    ${d.items.map((item,idx)=>`
-      <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-top:${idx>0?'1px solid #e8f0f7':'none'};">
-        <div style="flex:1;font-size:13px;min-width:0;">
-          ${item.name}
-          ${item.note?`<span style="font-size:10px;color:#7a8e9a;margin-left:5px;">${item.note}</span>`:''}
+    ${d.items.map((item,idx)=>{
+      const subId='sub_c_'+d.i+'_'+idx;
+      const hasSub=item.subItems&&item.subItems.length>0;
+      const subHtml=hasSub?`
+        <button class="sub-toggle-btn" onclick="event.stopPropagation();toggleSubDetail('${subId}')">📋 ${item.subItems.length} 個細項</button>
+        <div id="${subId}" class="sub-detail" style="display:none;">
+          ${item.subItems.map(s=>{
+            const sv=toView(s.amount||0,item.currency);
+            const conv=item.currency!==viewCur?`<span class="sub-detail-conv">≈${fmt(sv)} ${viewCur}</span>`:'';
+            return`<div class="sub-detail-row">
+              <span class="sub-detail-name">${s.name||'—'}</span>
+              <span class="sub-detail-amt">${fmt(s.amount||0)} ${item.currency}${conv}</span>
+            </div>`;
+          }).join('')}
+        </div>`:'';
+      const editClick=item.pIdx!=null?`onclick="closeDetailAndEdit(${item.pIdx})" style="cursor:pointer;"`:'' ;
+      return`<div style="padding:8px 0;border-top:${idx>0?'1px solid #e8f0f7':'none'};">
+        <div style="display:flex;align-items:center;gap:8px;" ${editClick}>
+          <div style="flex:1;font-size:13px;min-width:0;">
+            ${item.name}
+            ${item.note?`<span style="font-size:10px;color:#7a8e9a;margin-left:5px;">${item.note}</span>`:''}
+          </div>
+          ${item.pIdx!=null?`<span style="font-size:11px;color:#a8bcc8;">✏️</span>`:''}
+          <div style="text-align:right;flex-shrink:0;">
+            <div style="font-size:13px;font-weight:600;color:${item.amount<0?'#7aab8a':'#4a6f8a'};">${item.amount<0?'－':''}${fmt(Math.abs(toView(item.amount,item.currency)))} ${viewCur}</div>
+            ${item.currency!==viewCur?`<div style="font-size:10px;color:#7a8e9a;margin-top:1px;">${item.amount<0?'－':''}${fmt(Math.abs(item.amount))} ${item.currency}</div>`:''}
+          </div>
         </div>
-        <div style="text-align:right;flex-shrink:0;">
-          <div style="font-size:13px;font-weight:600;color:${item.amount<0?'#7aab8a':'#4a6f8a'};">${item.amount<0?'－':'+'}${fmt(Math.abs(toView(item.amount,item.currency)))} ${viewCur}</div>
-          ${item.currency!==viewCur?`<div style="font-size:10px;color:#7a8e9a;margin-top:1px;">${item.amount<0?'－':'+'}${fmt(Math.abs(item.amount))} ${item.currency}</div>`:''}
-        </div>
-      </div>`).join('')}
+        ${subHtml}
+      </div>`;
+    }).join('')}
     <div style="margin-top:10px;padding-top:10px;border-top:1.5px dashed #d0dde8;display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:#4a6f8a;">
       <span>淨額</span><span style="color:${d.total<0?'#7aab8a':'#4a6f8a'}">${d.total<0?'－':''}${fmt(Math.abs(d.total))} ${viewCur}</span>
     </div>
@@ -927,6 +998,21 @@ function openAddExp(idx){
     (sharedData.days||[]).map((d,i)=>`<option value="${i}">Day${i+1}${d.date?' · '+d.date:''}${d.title?' '+d.title:''}</option>`).join('');
   if(isEdit&&e.dayIndex!=null) ds.value=e.dayIndex; else ds.value='-1';
 
+  // load sub items
+  const subItems=isEdit&&e.subItems?e.subItems:[];
+  const wrap=document.getElementById('subItemsWrap');
+  const btn=document.getElementById('subToggleBtn');
+  if(subItems.length>0){
+    wrap.style.display='';
+    btn.textContent='－ 收合細項';
+    renderSubItemRows(subItems);
+  } else {
+    wrap.style.display='none';
+    btn.textContent='＋ 展開細項';
+    document.getElementById('subItemsList').innerHTML='';
+    document.getElementById('subItemsTotal').style.display='none';
+  }
+
   openOv('expOv');
 }
 
@@ -981,6 +1067,68 @@ function calcAmt(str){
   }catch(e){return 0;}
 }
 
+function toggleSubItems(){
+  const wrap=document.getElementById('subItemsWrap');
+  const btn=document.getElementById('subToggleBtn');
+  const isOpen=wrap.style.display!=='none';
+  wrap.style.display=isOpen?'none':'';
+  btn.textContent=isOpen?'＋ 展開細項':'－ 收合細項';
+  if(!isOpen&&document.getElementById('subItemsList').children.length===0){
+    addSubItemRow();
+  }
+}
+
+function renderSubItemRows(items){
+  const list=document.getElementById('subItemsList');
+  list.innerHTML='';
+  items.forEach((item,i)=>{
+    const row=createSubRow(i,item.name,item.amount);
+    list.appendChild(row);
+  });
+  updateSubTotal();
+}
+
+function addSubItemRow(){
+  const list=document.getElementById('subItemsList');
+  const idx=list.children.length;
+  list.appendChild(createSubRow(idx,'',0));
+  updateSubTotal();
+}
+
+function createSubRow(idx,name,amount){
+  const cur=document.getElementById('expCur').value||sharedCur();
+  const row=document.createElement('div');
+  row.className='sub-item-row';
+  row.dataset.idx=idx;
+  const convHtml=viewCur!==cur&&amount?`≈${Math.round(toView(amount,cur)).toLocaleString()} ${viewCur}`:'';
+  row.innerHTML=`
+    <input class="sub-item-name" type="text" placeholder="品項名稱" value="${name}" oninput="updateSubTotal()">
+    <input class="sub-item-amt" type="number" placeholder="0" value="${amount||''}" inputmode="decimal" oninput="updateSubTotal()">
+    <span class="sub-item-conv" id="subconv_${idx}">${convHtml}</span>
+    <button class="sub-item-del" onclick="this.parentElement.remove();updateSubTotal()">×</button>`;
+  return row;
+}
+
+function updateSubTotal(){
+  const cur=document.getElementById('expCur').value||sharedCur();
+  const rows=document.querySelectorAll('.sub-item-row');
+  let total=0;
+  rows.forEach((row,i)=>{
+    const a=parseFloat(row.querySelector('.sub-item-amt').value)||0;
+    total+=a;
+    const conv=row.querySelector('[id^="subconv_"]');
+    if(conv) conv.textContent=viewCur!==cur&&a?`≈${Math.round(toView(a,cur)).toLocaleString()} ${viewCur}`:'';
+  });
+  const totEl=document.getElementById('subItemsTotal');
+  if(rows.length>0&&total>0){
+    const convTotal=viewCur!==cur?` ≈ ${Math.round(toView(total,cur)).toLocaleString()} ${viewCur}`:'';
+    totEl.style.display='';
+    totEl.textContent=`細項合計：${Math.round(total).toLocaleString()} ${cur}${convTotal}`;
+  } else {
+    totEl.style.display='none';
+  }
+}
+
 function savePersonalExp(){
   const name=document.getElementById('expName').value.trim();
   const amtStr=document.getElementById('expAmt').value.trim();
@@ -992,7 +1140,15 @@ function savePersonalExp(){
 
   if(!name){alert('請填寫名稱');return;}
 
-  const entry={name,amount:amt||0,currency,note,cat:selCat,dayIndex};
+  // collect sub items
+  const subRows=document.querySelectorAll('.sub-item-row[data-idx]');
+  const subItems=[];
+  subRows.forEach(row=>{
+    const n=row.querySelector('.sub-item-name').value.trim();
+    const a=parseFloat(row.querySelector('.sub-item-amt').value)||0;
+    if(n||a) subItems.push({name:n,amount:a});
+  });
+  const entry={name,amount:amt||0,currency,note,cat:selCat,dayIndex,subItems};
   if(!personalData.expenses) personalData.expenses=[];
 
   if(editIdx>=0) personalData.expenses[editIdx]=entry;
@@ -1139,6 +1295,11 @@ function exportExcel(){
 
   const fname='伶的旅遊帳本_'+new Date().toISOString().slice(0,10)+'.xlsx';
   XLSX.writeFile(wb,fname);
+}
+
+function closeDetailAndEdit(pIdx){
+  _selCat=null;
+  openAddExp(pIdx);
 }
 
 /* ── helpers ── */
