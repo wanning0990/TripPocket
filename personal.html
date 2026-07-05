@@ -849,7 +849,7 @@ function renderDetail(data){
             ${item.name}
             ${item.note?`<span style="font-size:10px;color:#7a8e9a;margin-left:5px;">${item.note}</span>`:''}
           </div>
-          ${item.pIdx!=null?`<span style="font-size:11px;color:#a8bcc8;">✏️</span>`:''}
+
           <div style="text-align:right;flex-shrink:0;">
             <div style="font-size:13px;font-weight:600;color:${item.amount<0?'#7aab8a':'#4a6f8a'};">${item.amount<0?'－':''}${fmt(Math.abs(toView(item.amount,item.currency)))} ${viewCur}</div>
             ${item.currency!==viewCur?`<div style="font-size:10px;color:#7a8e9a;margin-top:1px;">${item.amount<0?'－':''}${fmt(Math.abs(item.amount))} ${item.currency}</div>`:''}
